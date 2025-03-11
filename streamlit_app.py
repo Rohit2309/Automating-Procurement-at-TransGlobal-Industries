@@ -16,7 +16,7 @@ def load_llm():
     """
     return ChatGoogleGenerativeAI(
         model="gemini-1.5-pro-latest",  # or another available model (e.g. "chat-bison@001")
-        temperature=0.5,
+        temperature=0,
         max_tokens=8000,
         api_key=st.secrets["GOOGLE_API_KEY"]
     )
@@ -32,7 +32,8 @@ def convert_business_to_technical(business_text):
         input_variables=["business_text"],
         template=(
             "Convert the following Business Requirements Document (BRD) into a detailed and structured Technical Requirements Document." 
-            "Include both functional and non-functional requirements for purchasing new servers, software, or other technical assets."
+            "The output should be based solely on the information provided in the BRD—do not introduce any external details or hallucinations."
+            "Include both functional and non-functional requirements for purchasing new servers, software, or any other technical assets."
             "Ensure the document is clear and unambiguous so that suppliers can easily understand the specifications."
             "BRD: {business_text}"
         )
