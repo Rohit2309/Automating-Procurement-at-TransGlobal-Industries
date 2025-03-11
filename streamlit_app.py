@@ -147,6 +147,7 @@ if 'contract_draft' not in st.session_state:
 # -------------------------------
 # 4. Streamlit App Layout
 # -------------------------------
+st.set_page_config(page_title = "Transglobal Procurement Agent", layout="wide")
 st.title("Procurement Agent")
 
 # Step 1: Inputs
