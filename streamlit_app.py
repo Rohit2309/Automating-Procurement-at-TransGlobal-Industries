@@ -28,31 +28,25 @@ llm = load_llm()
 # -------------------------------
 def convert_business_to_technical(business_text):
     """Use the LLM to convert business requirements into technical requirements."""
-    prompt_template = PromptTemplate(
-        input_variables=["business_text"],
-        template=(
-            "Convert the following Business Requirements Document (BRD) into a detailed and structured Technical Requirements Document." 
-            "The output should be based solely on the information provided in the BRD—do not introduce any external details or hallucinations."
-            "Include both functional and non-functional requirements for purchasing new servers, software, or any other technical assets."
-            "Ensure the document is clear and unambiguous so that suppliers can easily understand the specifications."
-            "BRD: {business_text}"
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
+    prompt_template = "Convert the following Business Requirements Document (BRD) into a detailed and structured Technical Requirements Document." 
+                      "The output should be based solely on the information provided in the BRD—do not introduce any external details or hallucinations."
+                      "Include both functional and non-functional requirements for purchasing new servers, software, or any other technical assets."
+                      "Ensure the document is clear and unambiguous so that suppliers can easily understand the specifications."
+                      "BRD: {business_text}"
+    
+    prompt = PromptTemplate(input_variables=["business_text"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(business_text=business_text)
 
 def generate_rfp(technical_requirements):
     """Use the LLM to generate an RFP document from technical requirements."""
-    prompt_template = PromptTemplate(
-        input_variables=["technical_requirements"],
-        template=(
-            "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
-            "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
-            "Technical Requirements: {technical_requirements}"
-            "NOTE: do not introduce any external details or hallucinations."
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
+    prompt_template = "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
+                      "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
+                      "Technical Requirements: {technical_requirements}"
+                      "NOTE: do not introduce any external details or hallucinations."
+    
+    prompt = PromptTemplate(input_variables=["technical_requirements"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(technical_requirements=technical_requirements)
 
 def match_vendors(technical_requirements, vendor_df):
@@ -61,15 +55,12 @@ def match_vendors(technical_requirements, vendor_df):
     For simplicity, we only pass a subset of vendor data to the prompt.
     """
     vendor_data_str = vendor_df.head(10).to_csv(index=False)
-    prompt_template = PromptTemplate(
-        input_variables=["technical_requirements", "vendor_data"],
-        template=(
-            "You have the following technical requirements:\n{technical_requirements}\n\n"
-            "And here is a sample of the vendor data:\n{vendor_data}\n\n"
-            "Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
+    prompt_template =  "You have the following technical requirements:\n{technical_requirements}\n\n"
+                        "And here is a sample of the vendor data:\n{vendor_data}\n\n"
+                        "Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."
+    
+    prompt = PromptTemplate(input_variables=["technical_requirements", "vendor_data"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(
         technical_requirements=technical_requirements,
         vendor_data=vendor_data_str
@@ -88,15 +79,12 @@ def evaluate_bids(bids_df):
     Again, we only pass a sample of the bids to keep the prompt short.
     """
     bids_data_str = bids_df.head(10).to_csv(index=False)
-    prompt_template = PromptTemplate(
-        input_variables=["bids_data"],
-        template=(
-            "You have the following bids:\n{bids_data}\n\n"
-            "Evaluate each bid based on price, quality, delivery timelines, and technology. "
-            "Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
+    prompt_template = "You have the following bids:\n{bids_data}\n\n"
+                      "Evaluate each bid based on price, quality, delivery timelines, and technology. "
+                      "Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."
+
+    prompt = PromptTemplate(input_variables=["bids_data"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(bids_data=bids_data_str)
     try:
         evaluated = pd.read_csv(io.StringIO(output))
@@ -110,15 +98,12 @@ def simulate_negotiation_and_contract(top_bid):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     bid_details = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
-    prompt_template = PromptTemplate(
-        input_variables=["bid_details"],
-        template=(
-            "You have the following top bid details:\n{bid_details}\n\n"
-            "First, outline a negotiation strategy. Then provide a draft contract. "
-            "Separate the two with '---'."
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
+    prompt_template = "You have the following top bid details:\n{bid_details}\n\n"
+                      "First, outline a negotiation strategy. Then provide a draft contract. "
+                      "Separate the two with '---'."
+
+    prompt = PromptTemplate(input_variables=["bid_details"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(bid_details=bid_details)
     if "---" in output:
         negotiation_strategy, contract_draft = output.split("---", 1)
