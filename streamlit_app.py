@@ -31,8 +31,10 @@ def convert_business_to_technical(business_text):
     prompt_template = PromptTemplate(
         input_variables=["business_text"],
         template=(
-            "Convert the following business requirements into a set of detailed technical requirements, "
-            "including functional and non-functional aspects:\n\n{business_text}"
+            "Convert the following Business Requirements Document (BRD) into a detailed and structured Technical Requirements Document. 
+            Include both functional and non-functional requirements for purchasing new servers, software, or other technical assets. 
+            Ensure the document is clear and unambiguous so that suppliers can easily understand the specifications. 
+            BRD: {business_text}"
         )
     )
     chain = LLMChain(llm=llm, prompt=prompt_template)
