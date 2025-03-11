@@ -46,8 +46,10 @@ def generate_rfp(technical_requirements):
     prompt_template = PromptTemplate(
         input_variables=["technical_requirements"],
         template=(
-            "Generate a professional Request for Proposal (RFP) based on these technical requirements. "
-            "Include clear performance criteria and any additional details suppliers might need:\n\n{technical_requirements}"
+            "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
+            "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
+            "Technical Requirements: {technical_requirements}"
+            "NOTE: do not introduce any external details or hallucinations."
         )
     )
     chain = LLMChain(llm=llm, prompt=prompt_template)
