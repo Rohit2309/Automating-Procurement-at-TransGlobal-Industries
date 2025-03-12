@@ -270,15 +270,15 @@ else:
 #     st.info("Enter business requirements in Step 1.")
 
 # Step 3: Generate RFP
-st.header("Step 3: Generate RFP")
-if st.session_state['technical_requirements']:
-    if st.button("Generate RFP"):
-        rfp = generate_rfp(st.session_state['technical_requirements'])
-        st.session_state['rfp_document'] = rfp
-        st.write("Generated RFP Document:")
-        st.text_area("RFP Document", value=rfp, height=150)
-else:
-    st.info("Please generate technical requirements in Step 2.")
+# st.header("Step 3: Generate RFP")
+# if st.session_state['technical_requirements']:
+#     if st.button("Generate RFP"):
+#         rfp = generate_rfp(st.session_state['technical_requirements'])
+#         st.session_state['rfp_document'] = rfp
+#         st.write("Generated RFP Document:")
+#         st.text_area("RFP Document", value=rfp, height=150)
+# else:
+#     st.info("Please generate technical requirements in Step 2.")
 
 # # Step 4: Vendor Selection
 # st.header("Step 4: Vendor Selection")
