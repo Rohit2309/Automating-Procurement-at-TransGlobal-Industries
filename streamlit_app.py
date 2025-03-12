@@ -3,7 +3,8 @@ import langchain
 import pandas as pd
 import io
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain import PromptTemplate, LLMChain
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 # displaying versions of libraries used
 print("streamlit version:", st.__version__)
@@ -61,7 +62,8 @@ def match_vendors(rfp_document, vendor_df):
     For simplicity, we only pass a subset of vendor data to the prompt.
     """
     # Add technical requirements from rfp and vendor evaluation criteria to the prompt
-    # vendor_data_str = vendor_df.head(10).to_csv(index=False)
+    # Convert the vendor DataFrame to a CSV string
+    vendor_csv_str = vendor_df.to_csv(index=False)
     # Acceptance criteria: Quality_of_Goods: 0.4, Delivery_punctuality: 0.35,  Contract_term_compliance: 0.25
     prompt_template =  """You are provided with a vendor dataset as input (variable: {vendor_data}) where each row represents a single delivery. The dataset includes the following key attributes:
 
@@ -93,11 +95,12 @@ def match_vendors(rfp_document, vendor_df):
                         Remember, Use only the information provided in the vendor dataset. Do not introduce any external data or hallucinate details.
                         
                         Output Format:
-                        Return the final result in CSV format with columns: VendorName, WeightedAverage."""
+                        Strictly return only the CSV output with columns: VendorName, WeightedAverage.
+                        Do not return any other strings or text"""
     
     prompt = PromptTemplate(input_variables=["vendor_data"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    output = chain.run(vendor_data=vendor_df)
+    output = chain.run(vendor_data=vendor_csv_str)
 
     # try:
     shortlisted = pd.read_csv(io.StringIO(output))
