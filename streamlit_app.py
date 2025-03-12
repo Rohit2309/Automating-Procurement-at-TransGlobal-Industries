@@ -122,6 +122,8 @@ def simulate_negotiation_and_contract(top_bid):
 # -------------------------------
 # 3. Initialize Session State
 # -------------------------------
+# if 'disabled' not in st.session_state:
+#     st.session_state.disabled = False
 if 'business_requirements' not in st.session_state:
     st.session_state['business_requirements'] = ''
 if 'technical_requirements' not in st.session_state:
@@ -153,8 +155,10 @@ with st.form("input_form"):
     business_text = st.text_area("Enter Business Requirements", height=150)
     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
+    # if not business_text and vendor_file is not None and bids_file is not None:
+    #     st.session_state.disabled = True
     submit_disabled = not (business_text and vendor_file is not None and bids_file is not None)
-    submitted_inputs = st.form_submit_button("Submit Inputs", disable = submit_disabled)
+    submitted_inputs = st.form_submit_button("Submit Inputs", disabled = submit_disabled)
 
     if submitted_inputs:
         # Capture business requirements
