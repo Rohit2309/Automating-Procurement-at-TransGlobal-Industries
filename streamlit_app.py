@@ -1,8 +1,14 @@
 import streamlit as st
+import langchain
 import pandas as pd
 import io
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain import PromptTemplate, LLMChain
+
+# displaying versions of libraries used
+print("streamlit version:", st.__version__)
+print("langchain version:", langchain.__version__)
+print("pandas version:", pd.__version__)
 
 # -------------------------------
 # 1. Initialize the Chat Model
