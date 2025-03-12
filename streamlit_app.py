@@ -23,19 +23,19 @@ def load_llm():
 
 llm = load_llm()
 
-def generate_rfp(technical_requirements):
-    """Use the LLM to generate an RFP document from technical requirements."""
-    prompt_template = PromptTemplate(
-        input_variables=["technical_requirements"],
-        template=(
-            "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
-            "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
-            "Technical Requirements: {technical_requirements}"
-            "NOTE: do not introduce any external details or hallucinations."
-        )
-    )
-    chain = LLMChain(llm=llm, prompt=prompt_template)
-    return chain.run(technical_requirements=technical_requirements)
+# def generate_rfp(technical_requirements):
+#     """Use the LLM to generate an RFP document from technical requirements."""
+#     prompt_template = PromptTemplate(
+#         input_variables=["technical_requirements"],
+#         template=(
+#             "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
+#             "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
+#             "Technical Requirements: {technical_requirements}"
+#             "NOTE: do not introduce any external details or hallucinations."
+#         )
+#     )
+#     chain = LLMChain(llm=llm, prompt=prompt_template)
+#     return chain.run(technical_requirements=technical_requirements)
 
 # -------------------------------
 # 2. LLM-Driven Functions
@@ -67,32 +67,60 @@ def generate_rfp(technical_requirements):
 #     chain = LLMChain(llm=llm, prompt=prompt_template)
 #     return chain.run(technical_requirements=technical_requirements)
 
-# def match_vendors(technical_requirements, vendor_df):
-#     """
-#     Use the LLM to select top vendors based on technical requirements and vendor data.
-#     For simplicity, we only pass a subset of vendor data to the prompt.
-#     """
-#     vendor_data_str = vendor_df.head(10).to_csv(index=False)
-#     prompt_template = PromptTemplate(
-#         input_variables=["technical_requirements", "vendor_data"],
-#         template=(
-#             "You have the following technical requirements:\n{technical_requirements}\n\n"
-#             "And here is a sample of the vendor data:\n{vendor_data}\n\n"
-#             "Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."
-#         )
-#     )
-#     chain = LLMChain(llm=llm, prompt=prompt_template)
-#     output = chain.run(
-#         technical_requirements=technical_requirements,
-#         vendor_data=vendor_data_str
-#     )
+def match_vendors(rfp_document, vendor_df):
+    """
+    Use the LLM to select top vendors based on rpf and vendor data.
+    For simplicity, we only pass a subset of vendor data to the prompt.
+    """
+    # Add technical requirements from rfp and vendor evaluation criteria to the prompt
+    # Convert the vendor DataFrame to a CSV string
+    vendor_csv_str = vendor_df.to_csv(index=False)
+    # Acceptance criteria: Quality_of_Goods: 0.4, Delivery_punctuality: 0.35,  Contract_term_compliance: 0.25
+    prompt_template =  """You are provided with a vendor dataset as input (variable: {vendor_data}) where each row represents a single delivery. The dataset includes the following key attributes:
 
-#     try:
-#         shortlisted = pd.read_csv(io.StringIO(output))
-#     except Exception:
-#         st.error("Could not parse LLM output for vendor selection. Using fallback selection.")
-#         shortlisted = vendor_df.head(3)
-#     return shortlisted
+                        Vendor_name: Name of the vendor.
+                        Delivery_punctuality: Delivery punctuality score (1-10, with 10 being the best).
+                        Quality_of_goods: Quality score for delivered goods (1-10, with 10 being the best).
+                        Contract_term_compliance: Contract compliance score (1-10, with 10 being the best).
+                        
+                        Follow these steps:
+                        
+                        1. Aggregate Data: Group the dataset by 'Vendor_name'. For each vendor, calculate the mean values for 'Delivery_punctuality', 'Quality_of_goods', and 'Contract_term_compliance'. For example, for Vendor A, determine:
+                        
+                        Mean_Delivery_punctuality_Vendor_A
+                        Mean_Quality_of_goods_Vendor_A
+                        Mean_Contract_term_compliance_Vendor_A
+                        
+                        2. Compute Weighted Average: For each vendor, compute the weighted average score using the weights:
+                        
+                        w1 = 0.4 for 'Quality_of_goods'
+                        w2 = 0.35 for 'Delivery_punctuality'
+                        w3 = 0.25 for 'Contract_term_compliance'
+                        Specifically, for a vendor X:
+                        Weighted_Average_X = (Mean_Quality_of_goods_X * 0.4) + (Mean_Delivery_punctuality_X * 0.35) + (Mean_Contract_term_compliance_X * 0.25)
+                        
+                        3. Select Top Vendors: Rank the vendors based on their weighted average scores in descending order and choose the top 3.
+                        
+                        4. Output Format: Return a list of the top 3 vendors along with their weighted average scores.
+                        
+                        Remember, Use only the information provided in the vendor dataset. Do not introduce any external data or hallucinate details.
+                        
+                        Output Format:
+                        Strictly return only the CSV output with columns: VendorName, WeightedAverage.
+                        Do not return any other strings or text"""
+    
+    prompt = PromptTemplate(input_variables=["vendor_data"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
+    output = chain.run(vendor_data=vendor_csv_str)
+    # Clean up output to remove extra blank lines or unwanted text
+    output = output.strip()
+    st.write("LLM Output:", output)
+    # try:
+    shortlisted = pd.read_csv(io.StringIO(output))
+    # except Exception:
+    #     st.error("Could not parse LLM output for vendor selection. Using fallback selection.")
+    #     shortlisted = vendor_df.head(3)
+    return shortlisted
 
 # def evaluate_bids(bids_df):
 #     """
@@ -148,12 +176,12 @@ if 'technical_requirements' not in st.session_state:
     st.session_state['technical_requirements'] = ''
 if 'rfp_document' not in st.session_state:
     st.session_state['rfp_document'] = ''
-# if 'vendor_df' not in st.session_state:
-#     st.session_state['vendor_df'] = None
+if 'vendor_df' not in st.session_state:
+    st.session_state['vendor_df'] = None
+if 'shortlisted_vendors' not in st.session_state:
+    st.session_state['shortlisted_vendors'] = None
 # if 'bids_df' not in st.session_state:
 #     st.session_state['bids_df'] = None
-# if 'shortlisted_vendors' not in st.session_state:
-#     st.session_state['shortlisted_vendors'] = None
 # if 'evaluated_bids' not in st.session_state:
 #     st.session_state['evaluated_bids'] = None
 # if 'negotiation_strategy' not in st.session_state:
@@ -164,24 +192,49 @@ if 'rfp_document' not in st.session_state:
 # # -------------------------------
 # # 4. Streamlit App Layout
 # # -------------------------------
-# st.set_page_config(page_title = "Transglobal Procurement Agent")
-# st.title("Procurement Agent")
-
-# # Step 1: Inputs
-st.header("Step 1: Enter Technical Requirements")
+st.set_page_config(page_title = "Transglobal Procurement Agent")
+st.title("Procurement Agent")
 with st.form("input_form"):
-    technical_requirements = st.text_area("Enter Business Requirements", height=150)
-#     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
-#     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
+    vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     submitted_inputs = st.form_submit_button("Submit Inputs")
 
-    if submitted_inputs:
-        # Capture business requirements
-        if technical_requirements:
-            st.session_state['technical_requirements'] = technical_requirements
-            st.success("Technical requirements captured.")
+if vendor_file is not None:
+            try:
+                vendor_df = pd.read_csv(vendor_file)
+                st.session_state['vendor_df'] = vendor_df
+                st.success("Vendor CSV uploaded successfully.")
+            except Exception as e:
+                st.error(f"Error reading vendor CSV: {e}")
         else:
-            st.error("Please enter technical requirements.")
+            st.error("Please upload Vendor History CSV.")
+
+# Step 4: Vendor Selection
+st.header("Step 4: Vendor Selection")
+if st.session_state['vendor_df'] is not None:
+    if st.button("Select Vendors"):
+        shortlisted = match_vendors(st.session_state['rfp_document'], st.session_state['vendor_df'])
+        st.session_state['shortlisted_vendors'] = shortlisted
+        st.success("Shortlisted Vendors")
+        with st.expander("Show shortlisted vendors"):
+            st.dataframe(shortlisted)
+else:
+    st.info("Ensure technical requirements are generated and vendor CSV is uploaded.")
+
+# # # Step 1: Inputs
+# st.header("Step 1: Enter Technical Requirements")
+# with st.form("input_form"):
+#     technical_requirements = st.text_area("Enter Business Requirements", height=150)
+# #     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
+# #     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
+#     submitted_inputs = st.form_submit_button("Submit Inputs")
+
+#     if submitted_inputs:
+#         # Capture business requirements
+#         if technical_requirements:
+#             st.session_state['technical_requirements'] = technical_requirements
+#             st.success("Technical requirements captured.")
+#         else:
+#             st.error("Please enter technical requirements.")
         
 #         # Process vendor CSV
 #         if vendor_file is not None:
