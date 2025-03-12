@@ -184,8 +184,10 @@ if st.session_state['business_requirements']:
     if st.button("Convert to Technical Requirements"):
         tech_req = convert_business_to_technical(st.session_state['business_requirements'])
         st.session_state['technical_requirements'] = tech_req
-        st.write("Generated Technical Requirements:")
-        st.text_area("Technical Requirements", value=tech_req, height=150)
+        with st.expander("Show Technical Requirements"):
+            st.write(tech_req)
+        # st.write("Generated Technical Requirements:")
+        # st.text_area("Technical Requirements", value=tech_req, height=150)
 else:
     st.info("Enter business requirements in Step 1.")
 
