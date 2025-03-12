@@ -198,7 +198,8 @@ if st.session_state['technical_requirements']:
     if st.button("Generate RFP"):
         rfp = generate_rfp(st.session_state['technical_requirements'])
         st.session_state['rfp_document'] = rfp
-        with st.expander("Show Request For Proposal"):
+        st.success("Generated RFP")
+        with st.expander("Show RFP"):
             st.write(rfp)
         # st.text_area("RFP Document", value=rfp, height=150)
 else:
@@ -210,6 +211,7 @@ if st.session_state['technical_requirements'] and st.session_state['vendor_df'] 
     if st.button("Select Vendors"):
         shortlisted = match_vendors(st.session_state['technical_requirements'], st.session_state['vendor_df'])
         st.session_state['shortlisted_vendors'] = shortlisted
+        st.success("Shortlisted Vendors")
         with st.expander("Show shortlisted vendors"):
             st.dataframe(shortlisted)
             # st.write(shortlisted)
@@ -224,6 +226,7 @@ if st.session_state['bids_df'] is not None:
     if st.button("Evaluate Bids"):
         evaluated = evaluate_bids(st.session_state['bids_df'])
         st.session_state['evaluated_bids'] = evaluated
+        st.success("Evaluated Bids")
         with st.expander("Show Top Evaluated Bids"):
             st.dataframe(evaluated)
         # st.write("Top Evaluated Bids:")
@@ -239,6 +242,7 @@ if st.session_state['evaluated_bids'] is not None and not st.session_state['eval
         negotiation_strategy, contract_draft = simulate_negotiation_and_contract(top_bid)
         st.session_state['negotiation_strategy'] = negotiation_strategy
         st.session_state['contract_draft'] = contract_draft
+        st.success("Generated Negotiation Strategy and Contract Draft")
         with st.expander("Show Negotiation Strategy"):
             st.write(negotiation_strategy)
         # st.write("Negotiation Strategy:")
