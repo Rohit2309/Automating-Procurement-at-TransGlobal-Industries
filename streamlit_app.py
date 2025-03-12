@@ -93,7 +93,7 @@ def match_vendors(rfp_document, vendor_df):
                         4. Output Format: Return a list of the top 3 vendors along with their weighted average scores.
                         
                         Remember, Use only the information provided in the vendor dataset. Do not introduce any external data or hallucinate details.
-                        
+                        Do not return python code.
                         Output Format:
                         Strictly return only the CSV output with columns: VendorName, WeightedAverage.
                         Do not return any other strings or text"""
@@ -101,7 +101,8 @@ def match_vendors(rfp_document, vendor_df):
     prompt = PromptTemplate(input_variables=["vendor_data"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(vendor_data=vendor_csv_str)
-
+    # Clean up output to remove extra blank lines or unwanted text
+    output = output.strip()
     # try:
     shortlisted = pd.read_csv(io.StringIO(output))
     # except Exception:
