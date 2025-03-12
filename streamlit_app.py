@@ -184,6 +184,7 @@ if st.session_state['business_requirements']:
     if st.button("Convert to Technical Requirements"):
         tech_req = convert_business_to_technical(st.session_state['business_requirements'])
         st.session_state['technical_requirements'] = tech_req
+        st.success("Generated Technical Requirements")
         with st.expander("Show Technical Requirements"):
             st.write(tech_req)
         # st.write("Generated Technical Requirements:")
@@ -197,8 +198,9 @@ if st.session_state['technical_requirements']:
     if st.button("Generate RFP"):
         rfp = generate_rfp(st.session_state['technical_requirements'])
         st.session_state['rfp_document'] = rfp
-        st.write("Generated RFP Document:")
-        st.text_area("RFP Document", value=rfp, height=150)
+        with st.expander("Show Request For Proposal"):
+            st.write(rfp)
+        # st.text_area("RFP Document", value=rfp, height=150)
 else:
     st.info("Please generate technical requirements in Step 2.")
 
@@ -208,8 +210,11 @@ if st.session_state['technical_requirements'] and st.session_state['vendor_df'] 
     if st.button("Select Vendors"):
         shortlisted = match_vendors(st.session_state['technical_requirements'], st.session_state['vendor_df'])
         st.session_state['shortlisted_vendors'] = shortlisted
-        st.write("Shortlisted Vendors:")
-        st.dataframe(shortlisted)
+        with st.expander("Show shortlisted vendors"):
+            st.dataframe(shortlisted)
+            # st.write(shortlisted)
+        # st.write("Shortlisted Vendors:")
+        # st.dataframe(shortlisted)
 else:
     st.info("Ensure technical requirements are generated and vendor CSV is uploaded.")
 
@@ -219,8 +224,10 @@ if st.session_state['bids_df'] is not None:
     if st.button("Evaluate Bids"):
         evaluated = evaluate_bids(st.session_state['bids_df'])
         st.session_state['evaluated_bids'] = evaluated
-        st.write("Top Evaluated Bids:")
-        st.dataframe(evaluated)
+        with st.expander("Show Top Evaluated Bids"):
+            st.dataframe(evaluated)
+        # st.write("Top Evaluated Bids:")
+        # st.dataframe(evaluated)
 else:
     st.info("Please upload Bids CSV in Step 1.")
 
@@ -232,33 +239,42 @@ if st.session_state['evaluated_bids'] is not None and not st.session_state['eval
         negotiation_strategy, contract_draft = simulate_negotiation_and_contract(top_bid)
         st.session_state['negotiation_strategy'] = negotiation_strategy
         st.session_state['contract_draft'] = contract_draft
-        st.write("Negotiation Strategy:")
-        st.text_area("Negotiation Strategy", value=negotiation_strategy, height=100)
-        st.write("Contract Draft:")
-        st.text_area("Contract Draft", value=contract_draft, height=150)
+        with st.expander("Show Negotiation Strategy"):
+            st.write(negotiation_strategy)
+        # st.write("Negotiation Strategy:")
+        # st.text_area("Negotiation Strategy", value=negotiation_strategy, height=100)
+        with st.expander("Show Contract Draft"):
+            st.write(contract_draft)
+        # st.write("Contract Draft:")
+        # st.text_area("Contract Draft", value=contract_draft, height=150)
 else:
     st.info("Please evaluate bids in Step 5.")
 
 # Step 7: Final Review & Downloads
 st.header("Step 7: Final Review & Download")
-if st.session_state['rfp_document']:
-    st.subheader("RFP Document")
-    st.text_area("RFP Document", value=st.session_state['rfp_document'], height=150)
 if st.session_state['technical_requirements']:
-    st.subheader("Technical Requirements")
-    st.text_area("Technical Requirements", value=st.session_state['technical_requirements'], height=150)
+    with st.expander("Show Technical Requirements"):
+        st.write(st.session_state['technical_requirements'])
+
+if st.session_state['rfp_document']:
+    with st.expander("Show Request For Proposal"):
+        st.write(st.session_state['rfp_document'])
+
 if st.session_state['shortlisted_vendors'] is not None:
-    st.subheader("Shortlisted Vendors")
-    st.dataframe(st.session_state['shortlisted_vendors'])
+    with st.expander("Show shortlisted vendors"):
+        st.dataframe(st.session_state['shortlisted_vendors'])
+    
 if st.session_state['evaluated_bids'] is not None:
-    st.subheader("Evaluated Bids")
-    st.dataframe(st.session_state['evaluated_bids'])
+    with st.expander("Show Top Evaluated Bids"):
+        st.dataframe(st.session_state['evaluated_bids'])
+
 if st.session_state['negotiation_strategy']:
-    st.subheader("Negotiation Strategy")
-    st.text_area("Negotiation Strategy", value=st.session_state['negotiation_strategy'], height=100)
+    with st.expander("Show Negotiation Strategy"):
+        st.write(st.session_state['negotiation_strategy'])
+
 if st.session_state['contract_draft']:
-    st.subheader("Contract Draft")
-    st.text_area("Contract Draft", value=st.session_state['contract_draft'], height=150)
+    with st.expander("Show Contract Draft"):
+        st.write(st.session_state['contract_draft'])
 
 st.header("Download Final Documents")
 if st.session_state['rfp_document']:
