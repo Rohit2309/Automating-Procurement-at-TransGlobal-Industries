@@ -49,20 +49,21 @@ def generate_rfp(technical_requirements):
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(technical_requirements=technical_requirements)
 
-def match_vendors(technical_requirements, vendor_df):
+def match_vendors(rfp_document, vendor_df):
     """
-    Use the LLM to select top vendors based on technical requirements and vendor data.
+    Use the LLM to select top vendors based on rpf and vendor data.
     For simplicity, we only pass a subset of vendor data to the prompt.
     """
+    # Add technical requirements from rfp and vendor evaluation criteria to the prompt
     vendor_data_str = vendor_df.head(10).to_csv(index=False)
-    prompt_template =  """You have the following technical requirements:\n{technical_requirements}\n\n
+    prompt_template =  """You have the following rfp:\n{rfp_document}\n\n
                         And here is a sample of the vendor data:\n{vendor_data}\n\n
                         Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."""
     
-    prompt = PromptTemplate(input_variables=["technical_requirements", "vendor_data"], template=prompt_template)
+    prompt = PromptTemplate(input_variables=["rfp_document", "vendor_data"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(
-        technical_requirements=technical_requirements,
+        rfp_document=rfp_document,
         vendor_data=vendor_data_str
     )
 
@@ -146,7 +147,7 @@ with st.form("input_form"):
     business_text = st.text_area("Enter Business Requirements", height=150)
     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
-    submitted_inputs = st.form_submit_button("Submit Inputs")
+    submitted_inputs = st.form_submit_button("Submit Inputs", disable = business_text and (vendor_file is not None) and (bids_file is not None))
 
     if submitted_inputs:
         # Capture business requirements
@@ -207,9 +208,9 @@ else:
 
 # Step 4: Vendor Selection
 st.header("Step 4: Vendor Selection")
-if st.session_state['technical_requirements'] and st.session_state['vendor_df'] is not None:
+if st.session_state['rfp_document'] and st.session_state['vendor_df'] is not None:
     if st.button("Select Vendors"):
-        shortlisted = match_vendors(st.session_state['technical_requirements'], st.session_state['vendor_df'])
+        shortlisted = match_vendors(st.session_state['rfp_document'], st.session_state['vendor_df'])
         st.session_state['shortlisted_vendors'] = shortlisted
         st.success("Shortlisted Vendors")
         with st.expander("Show shortlisted vendors"):
