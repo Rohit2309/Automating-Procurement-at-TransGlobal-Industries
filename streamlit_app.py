@@ -200,14 +200,14 @@ with st.form("input_form"):
     submitted_inputs = st.form_submit_button("Submit Inputs")
 
 if vendor_file is not None:
-            try:
-                vendor_df = pd.read_csv(vendor_file)
-                st.session_state['vendor_df'] = vendor_df
-                st.success("Vendor CSV uploaded successfully.")
-            except Exception as e:
-                st.error(f"Error reading vendor CSV: {e}")
-        else:
-            st.error("Please upload Vendor History CSV.")
+    try:
+        vendor_df = pd.read_csv(vendor_file)
+        st.session_state['vendor_df'] = vendor_df
+        st.success("Vendor CSV uploaded successfully.")
+    except Exception as e:
+        st.error(f"Error reading vendor CSV: {e}")
+else:
+    st.error("Please upload Vendor History CSV.")
 
 # Step 4: Vendor Selection
 st.header("Step 4: Vendor Selection")
