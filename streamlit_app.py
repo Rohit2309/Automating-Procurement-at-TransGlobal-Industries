@@ -147,7 +147,8 @@ with st.form("input_form"):
     business_text = st.text_area("Enter Business Requirements", height=150)
     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
-    submitted_inputs = st.form_submit_button("Submit Inputs", disable = business_text and (vendor_file is not None) and (bids_file is not None))
+    submit_disabled = not (business_text and vendor_file is not None and bids_file is not None)
+    submitted_inputs = st.form_submit_button("Submit Inputs", disable = submit_disabled)
 
     if submitted_inputs:
         # Capture business requirements
