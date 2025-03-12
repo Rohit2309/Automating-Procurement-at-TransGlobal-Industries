@@ -154,7 +154,7 @@ st.header("Step 1: Upload Inputs & Business Requirements")
 with st.form("input_form"):
     business_text = st.text_area("Enter Business Requirements", height=150)
     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
-    bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
+    # bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
     submitted_inputs = st.form_submit_button("Submit Inputs")
 
     if submitted_inputs:
@@ -176,16 +176,16 @@ with st.form("input_form"):
         else:
             st.error("Please upload Vendor History CSV.")
         
-        # Process bids CSV
-        if bids_file is not None:
-            try:
-                bids_df = pd.read_csv(bids_file)
-                st.session_state['bids_df'] = bids_df
-                st.success("Bids CSV uploaded successfully.")
-            except Exception as e:
-                st.error(f"Error reading Bids CSV: {e}")
-        else:
-            st.error("Please upload Bids CSV.")
+        # # Process bids CSV
+        # if bids_file is not None:
+        #     try:
+        #         bids_df = pd.read_csv(bids_file)
+        #         st.session_state['bids_df'] = bids_df
+        #         st.success("Bids CSV uploaded successfully.")
+        #     except Exception as e:
+        #         st.error(f"Error reading Bids CSV: {e}")
+        # else:
+        #     st.error("Please upload Bids CSV.")
 
 # Step 2: Convert to Technical Requirements
 st.header("Step 2: Convert Business to Technical Requirements")
@@ -223,21 +223,28 @@ if st.session_state['rfp_document'] and st.session_state['vendor_df'] is not Non
         st.success("Shortlisted Vendors")
         with st.expander("Show shortlisted vendors"):
             st.dataframe(shortlisted)
-            # st.write(shortlisted)
-        # st.write("Shortlisted Vendors:")
-        # st.dataframe(shortlisted)
 else:
     st.info("Ensure technical requirements are generated and vendor CSV is uploaded.")
 
 # Step 5: Bid Evaluation
 st.header("Step 5: Evaluate Bids")
-if st.session_state['bids_df'] is not None:
+# Replace the below if statement with "if tender document has been generated or not in the Step 4"
+if st.session_state['shortlisted_vendors'] is not None:
+    bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
     if st.button("Evaluate Bids"):
         evaluated = evaluate_bids(st.session_state['bids_df'])
         st.session_state['evaluated_bids'] = evaluated
         st.success("Evaluated Bids")
         with st.expander("Show Top Evaluated Bids"):
             st.dataframe(evaluated)
+
+# if st.session_state['bids_df'] is not None:
+#     if st.button("Evaluate Bids"):
+#         evaluated = evaluate_bids(st.session_state['bids_df'])
+#         st.session_state['evaluated_bids'] = evaluated
+#         st.success("Evaluated Bids")
+#         with st.expander("Show Top Evaluated Bids"):
+#             st.dataframe(evaluated)
         # st.write("Top Evaluated Bids:")
         # st.dataframe(evaluated)
 else:
