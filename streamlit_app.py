@@ -193,7 +193,7 @@ if 'shortlisted_vendors' not in st.session_state:
 # # -------------------------------
 # # 4. Streamlit App Layout
 # # -------------------------------
-st.set_page_config(page_title = "Transglobal Procurement Agent")
+st.set_page_config(page_title = "Test")
 st.title("Procurement Agent")
 with st.form("input_form"):
     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
