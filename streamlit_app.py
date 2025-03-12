@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import io
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain import PromptTemplate, LLMChain
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 
 # -------------------------------
 # 1. Initialize the Chat Model
