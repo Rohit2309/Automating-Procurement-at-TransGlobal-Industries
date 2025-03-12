@@ -56,7 +56,7 @@ def generate_rfp(technical_requirements):
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(technical_requirements=technical_requirements)
 
-def match_vendors(rfp_document, vendor_df):
+def match_vendors(vendor_df):
     """
     Use the LLM to select top vendors based on rpf and vendor data.
     For simplicity, we only pass a subset of vendor data to the prompt.
@@ -183,7 +183,7 @@ st.title("Procurement Agent")
 st.header("Step 1: Upload Inputs & Business Requirements")
 with st.form("input_form"):
     business_text = st.text_area("Enter Business Requirements", height=150)
-    vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
+    # vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     # bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
     submitted_inputs = st.form_submit_button("Submit Inputs")
 
@@ -196,15 +196,15 @@ with st.form("input_form"):
             st.error("Please enter business requirements.")
         
         # Process vendor CSV
-        if vendor_file is not None:
-            try:
-                vendor_df = pd.read_csv(vendor_file)
-                st.session_state['vendor_df'] = vendor_df
-                st.success("Vendor CSV uploaded successfully.")
-            except Exception as e:
-                st.error(f"Error reading vendor CSV: {e}")
-        else:
-            st.error("Please upload Vendor History CSV.")
+        # if vendor_file is not None:
+        #     try:
+        #         vendor_df = pd.read_csv(vendor_file)
+        #         st.session_state['vendor_df'] = vendor_df
+        #         st.success("Vendor CSV uploaded successfully.")
+        #     except Exception as e:
+        #         st.error(f"Error reading vendor CSV: {e}")
+        # else:
+        #     st.error("Please upload Vendor History CSV.")
         
         # # Process bids CSV
         # if bids_file is not None:
@@ -246,15 +246,29 @@ else:
 
 # Step 4: Vendor Selection
 st.header("Step 4: Vendor Selection")
-if st.session_state['rfp_document'] and st.session_state['vendor_df'] is not None:
+if st.session_state['rfp_document']:
+    vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
     if st.button("Select Vendors"):
-        shortlisted = match_vendors(st.session_state['rfp_document'], st.session_state['vendor_df'])
-        st.session_state['shortlisted_vendors'] = shortlisted
-        st.success("Shortlisted Vendors")
-        with st.expander("Show shortlisted vendors"):
-            st.dataframe(shortlisted)
+        if vendor_file is not None:
+            try:
+                vendor_df = pd.read_csv(vendor_file)
+                st.session_state['vendor_df'] = vendor_df
+                st.success("Vendor CSV uploaded successfully.")
+                shortlisted = match_vendors(st.session_state['vendor_df'])
+                st.session_state['shortlisted_vendors'] = shortlisted
+                st.success("Shortlisted Vendors")
+                with st.expander("Show shortlisted vendors"):
+                    st.dataframe(shortlisted)
+            except Exception as e:
+                st.error(f"Error reading vendor CSV: {e}")
+                
+        else:
+            st.error("Please upload Vendor History CSV.")
+
+        
+        
 else:
-    st.info("Ensure technical requirements are generated and vendor CSV is uploaded.")
+    st.info("Ensure technical requirements are generated.")
 
 # Step 5: Bid Evaluation
 st.header("Step 5: Evaluate Bids")
@@ -267,7 +281,7 @@ if st.session_state['shortlisted_vendors'] is not None:
         st.success("Evaluated Bids")
         with st.expander("Show Top Evaluated Bids"):
             st.dataframe(evaluated)
-
+    
 # if st.session_state['bids_df'] is not None:
 #     if st.button("Evaluate Bids"):
 #         evaluated = evaluate_bids(st.session_state['bids_df'])
