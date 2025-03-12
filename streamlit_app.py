@@ -61,23 +61,49 @@ def match_vendors(rfp_document, vendor_df):
     For simplicity, we only pass a subset of vendor data to the prompt.
     """
     # Add technical requirements from rfp and vendor evaluation criteria to the prompt
-    vendor_data_str = vendor_df.head(10).to_csv(index=False)
-    prompt_template =  """You have the following rfp:\n{rfp_document}\n\n
-                        And here is a sample of the vendor data:\n{vendor_data}\n\n
-                        Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."""
-    
-    prompt = PromptTemplate(input_variables=["rfp_document", "vendor_data"], template=prompt_template)
-    chain = LLMChain(llm=llm, prompt=prompt)
-    output = chain.run(
-        rfp_document=rfp_document,
-        vendor_data=vendor_data_str
-    )
+    # vendor_data_str = vendor_df.head(10).to_csv(index=False)
+    # Acceptance criteria: Quality_of_Goods: 0.4, Delivery_punctuality: 0.35,  Contract_term_compliance: 0.25
+    prompt_template =  """You are provided with a vendor dataset as input (variable: {vendor_data}) where each row represents a single delivery. The dataset includes the following key attributes:
 
-    try:
-        shortlisted = pd.read_csv(io.StringIO(output))
-    except Exception:
-        st.error("Could not parse LLM output for vendor selection. Using fallback selection.")
-        shortlisted = vendor_df.head(3)
+                        Vendor_name: Name of the vendor.
+                        Delivery_punctuality: Delivery punctuality score (1-10, with 10 being the best).
+                        Quality_of_goods: Quality score for delivered goods (1-10, with 10 being the best).
+                        Contract_term_compliance: Contract compliance score (1-10, with 10 being the best).
+                        
+                        Follow these steps:
+                        
+                        1. Aggregate Data: Group the dataset by 'Vendor_name'. For each vendor, calculate the mean values for 'Delivery_punctuality', 'Quality_of_goods', and 'Contract_term_compliance'. For example, for Vendor A, determine:
+                        
+                        Mean_Delivery_punctuality_Vendor_A
+                        Mean_Quality_of_goods_Vendor_A
+                        Mean_Contract_term_compliance_Vendor_A
+                        
+                        2. Compute Weighted Average: For each vendor, compute the weighted average score using the weights:
+                        
+                        w1 = 0.4 for 'Quality_of_goods'
+                        w2 = 0.35 for 'Delivery_punctuality'
+                        w3 = 0.25 for 'Contract_term_compliance'
+                        Specifically, for a vendor X:
+                        Weighted_Average_X = (Mean_Quality_of_goods_X * 0.4) + (Mean_Delivery_punctuality_X * 0.35) + (Mean_Contract_term_compliance_X * 0.25)
+                        
+                        3. Select Top Vendors: Rank the vendors based on their weighted average scores in descending order and choose the top 3.
+                        
+                        4. Output Format: Return a list of the top 3 vendors along with their weighted average scores.
+                        
+                        Remember, Use only the information provided in the vendor dataset. Do not introduce any external data or hallucinate details.
+                        
+                        Output Format:
+                        Return the final result in CSV format with columns: VendorName, WeightedAverage."""
+    
+    prompt = PromptTemplate(input_variables=["vendor_data"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
+    output = chain.run(vendor_data=vendor_df)
+
+    # try:
+    shortlisted = pd.read_csv(io.StringIO(output))
+    # except Exception:
+    #     st.error("Could not parse LLM output for vendor selection. Using fallback selection.")
+    #     shortlisted = vendor_df.head(3)
     return shortlisted
 
 def evaluate_bids(bids_df):
@@ -85,12 +111,12 @@ def evaluate_bids(bids_df):
     Use the LLM to evaluate bids and pick the top 2 based on price, quality, timelines, etc.
     Again, we only pass a sample of the bids to keep the prompt short.
     """
-    bids_data_str = bids_df.head(10).to_csv(index=False)
-    prompt_template = """You have the following bids:\n{bids_data}\n\n
+    # bids_data_str = bids_df.head(10).to_csv(index=False)
+    prompt_template = """You have the following bids:\n{bids_df}\n\n
                       Evaluate each bid based on price, quality, delivery timelines, and technology.
                       Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."""
 
-    prompt = PromptTemplate(input_variables=["bids_data"], template=prompt_template)
+    prompt = PromptTemplate(input_variables=["bids_df"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(bids_data=bids_data_str)
     try:
