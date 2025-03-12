@@ -40,10 +40,10 @@ def convert_business_to_technical(business_text):
 
 def generate_rfp(technical_requirements):
     """Use the LLM to generate an RFP document from technical requirements."""
-    prompt_template = "Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document."
-                      "The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input."
-                      "Technical Requirements: {technical_requirements}"
-                      "NOTE: do not introduce any external details or hallucinations."
+    prompt_template = """Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document.
+                      The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input.
+                      Technical Requirements: {technical_requirements}
+                      NOTE: do not introduce any external details or hallucinations."""
     
     prompt = PromptTemplate(input_variables=["technical_requirements"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
@@ -55,9 +55,9 @@ def match_vendors(technical_requirements, vendor_df):
     For simplicity, we only pass a subset of vendor data to the prompt.
     """
     vendor_data_str = vendor_df.head(10).to_csv(index=False)
-    prompt_template =  "You have the following technical requirements:\n{technical_requirements}\n\n"
-                        "And here is a sample of the vendor data:\n{vendor_data}\n\n"
-                        "Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."
+    prompt_template =  """You have the following technical requirements:\n{technical_requirements}\n\n
+                        And here is a sample of the vendor data:\n{vendor_data}\n\n
+                        Select the top 3 most suitable vendors. Return them in CSV format with columns: VendorName, KeyStrengths."""
     
     prompt = PromptTemplate(input_variables=["technical_requirements", "vendor_data"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
@@ -79,9 +79,9 @@ def evaluate_bids(bids_df):
     Again, we only pass a sample of the bids to keep the prompt short.
     """
     bids_data_str = bids_df.head(10).to_csv(index=False)
-    prompt_template = "You have the following bids:\n{bids_data}\n\n"
-                      "Evaluate each bid based on price, quality, delivery timelines, and technology. "
-                      "Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."
+    prompt_template = """You have the following bids:\n{bids_data}\n\n
+                      Evaluate each bid based on price, quality, delivery timelines, and technology.
+                      Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."""
 
     prompt = PromptTemplate(input_variables=["bids_data"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
@@ -98,9 +98,9 @@ def simulate_negotiation_and_contract(top_bid):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     bid_details = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
-    prompt_template = "You have the following top bid details:\n{bid_details}\n\n"
-                      "First, outline a negotiation strategy. Then provide a draft contract. "
-                      "Separate the two with '---'."
+    prompt_template = """You have the following top bid details:\n{bid_details}\n\n
+                      First, outline a negotiation strategy. Then provide a draft contract. 
+                      Separate the two with '---'."""
 
     prompt = PromptTemplate(input_variables=["bid_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
