@@ -90,12 +90,12 @@ def match_vendors(vendor_df):
                         
                         3. Select Top Vendors: Rank the vendors based on their weighted average scores in descending order and choose the top 3.
                         
-                        4. Output Format: Return a list of the top 3 vendors along with their weighted average scores.
+                        4. Output Format: Return a list of the top 3 vendors.
                         
                         Remember, Use only the information provided in the vendor dataset. Do not introduce any external data or hallucinate details.
                         Do not return python code.
                         Output Format:
-                        Strictly return only the CSV output with columns: VendorName, WeightedAverage.
+                        Strictly return only the CSV output with column: VendorName
                         Do not return any other strings or text"""
     
     prompt = PromptTemplate(input_variables=["vendor_data"], template=prompt_template)
@@ -109,6 +109,44 @@ def match_vendors(vendor_df):
     #     st.error("Could not parse LLM output for vendor selection. Using fallback selection.")
     #     shortlisted = vendor_df.head(3)
     return shortlisted
+
+def generate_tender_doc(tech_req):
+    prompt_template = """ Using the provided Technical Requirements Document (TRD) (variable: {trd}), generate a professional tender document for procurement purposes. The tender document should be structured, clear, and concise, ensuring that vendors fully understand the technical and business requirements.
+                        The tender document should include the following sections:
+                        
+                        1.	Title & Issuing Organization: Clearly state the tender title and the organization issuing it.
+                        2.	Invitation to Tender: A brief introduction explaining the purpose of the tender and the procurement scope.
+                        3.	Scope of Work: A summary of vendor responsibilities, including product delivery, pre-installation requirements, and support expectations.
+                        4.	Technical Requirements: 
+                            o	Hardware specifications (processor, RAM, storage, display, connectivity, etc.).
+                            o	Software requirements (pre-installed OS, applications, security software).
+                            o	Security and compliance requirements (e.g., TPM, biometric authentication).
+                        5.	Business Requirements: 
+                            o	Quantity of units required.
+                            o	Pricing and expected bulk purchase discounts.
+                            o	Payment terms and preferred conditions.
+                            o	Warranty and support expectations.
+                            o	Delivery timelines and shipping requirements.
+                            o	Packaging and inventory tagging needs.
+                        6.	Proposal Submission Guidelines: 
+                            o	Instructions on submission format (e.g., PDF).
+                            o	Required documents (e.g., company profile, compliance statement, pricing breakdown).
+                            o	Submission deadline and contact details.
+                        7.	Closing Statement: A formal closing encouraging vendors to submit proposals and reinforcing the deadline.
+                        
+                        Ensure that the document is professionally formatted with section headers, bullet points where necessary, and a business-appropriate tone. The final output should be structured in a way that makes it easy for vendors to review and respond efficiently.
+                        Remember, Use only the information provided in the TRD. Do not introduce any external data or hallucinate details."""
+    
+    prompt = PromptTemplate(input_variables=["trd"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
+    return chain.run(trd = tech_req)
+
+# def generate_email():
+#     prompt_template = """ prompt """
+#     prompt = PromptTemplate(input_variables=[], template=prompt_template)
+#     chain = LLMChain(llm=llm, prompt=prompt)
+#     output = chain.run()
+
 
 def evaluate_bids(bids_df):
     """
@@ -162,6 +200,8 @@ if 'rfp_document' not in st.session_state:
     st.session_state['rfp_document'] = ''
 if 'vendor_df' not in st.session_state:
     st.session_state['vendor_df'] = None
+if 'tender_doc' not in st.session_state:
+    st.session_state['tender_doc'] = ''
 if 'bids_df' not in st.session_state:
     st.session_state['bids_df'] = None
 if 'shortlisted_vendors' not in st.session_state:
@@ -263,15 +303,26 @@ if st.session_state['rfp_document']:
                 st.error(f"Error reading vendor CSV: {e}")
                 
         else:
-            st.error("Please upload Vendor History CSV.")
-
-        
-        
+            st.error("Please upload Vendor History CSV.")        
 else:
     st.info("Ensure technical requirements are generated.")
 
-# Step 5: Bid Evaluation
-st.header("Step 5: Evaluate Bids")
+# Step 5: Producing a tender document and generating email for the shortlisted vendors
+st.header("Step 5: Generating Emails for vendors")
+if st.session_state['shortlisted_vendors'] is not None:
+    if st.button("Generate Tender Document"):
+        tender_doc = generate_tender_doc(tech_req)
+        # email = generate_email() 
+        st.session_state['tender_doc'] = tender_doc
+        st.success("Generated Tender Document")
+        with st.expander("Show Tender Document"):
+            st.write(tender_doc)
+else:
+    st.info("Ensure shortlisted vendors list is generated")
+
+
+# Step 6: Bid Evaluation
+st.header("Step 6: Evaluate Bids")
 # Replace the below if statement with "if tender document has been generated or not in the Step 4"
 if st.session_state['shortlisted_vendors'] is not None:
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
@@ -294,8 +345,8 @@ if st.session_state['shortlisted_vendors'] is not None:
 else:
     st.info("Please upload Bids CSV in Step 1.")
 
-# Step 6: Negotiation & Contract
-st.header("Step 6: Negotiation Simulation and Contract Drafting")
+# Step 7: Negotiation & Contract
+st.header("Step 7: Negotiation Simulation and Contract Drafting")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
     top_bid = st.session_state['evaluated_bids'].iloc[0].to_dict()
     if st.button("Simulate Negotiation & Draft Contract"):
@@ -314,8 +365,8 @@ if st.session_state['evaluated_bids'] is not None and not st.session_state['eval
 else:
     st.info("Please evaluate bids in Step 5.")
 
-# Step 7: Final Review & Downloads
-st.header("Step 7: Final Review & Download")
+# Step 8: Final Review & Downloads
+st.header("Step 8: Final Review & Download")
 if st.session_state['technical_requirements']:
     with st.expander("Show Technical Requirements"):
         st.write(st.session_state['technical_requirements'])
