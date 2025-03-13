@@ -194,8 +194,7 @@ def evaluate_bids(bids_df, trd):
     Use the LLM to evaluate bids and pick the top 2 based on price, quality, timelines, etc.
     Again, we only pass a sample of the bids to keep the prompt short.
     """
-    df = pd.read_csv(bids_df)
-    bids_csv_text = df.to_string(index=False)  # Converts the DataFrame to a text
+    bids_csv_text = bids_df.to_string(index=False)  # Converts the DataFrame to a text
 
     prompt_template = """Chain-of-thought prompt:
 
@@ -388,11 +387,18 @@ st.header("Step 6: Evaluate Bids")
 if st.session_state['email']:
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
     if st.button("Evaluate Bids"):
-        evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
-        st.session_state['evaluated_bids'] = evaluated
-        st.success("Evaluated Bids")
-        with st.expander("Show Top Evaluated Bids"):
-            st.dataframe(evaluated)
+        if bids_file is not None:
+            try:
+                bids_df = pd.read_csv(bids_file)
+                st.session_state['bids_df'] = bids_df
+                st.success("Bids CSV uploaded successfully.")
+                evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
+                st.session_state['evaluated_bids'] = evaluated
+                st.success("Evaluated Bids")
+                with st.expander("Show Top Evaluated Bids"):
+                    st.dataframe(evaluated)
+            except Exception as e:
+                st.error(f"Error reading bids CSV: {e}")
     
 else:
     st.info("Ensure Email is generated")
