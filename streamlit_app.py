@@ -189,7 +189,7 @@ def generate_email(rfp):
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(rfp = rfp)
 
-def evaluate_bids(bids_df):
+def evaluate_bids(bids_df, trd):
     """
     Use the LLM to evaluate bids and pick the top 2 based on price, quality, timelines, etc.
     Again, we only pass a sample of the bids to keep the prompt short.
@@ -197,19 +197,26 @@ def evaluate_bids(bids_df):
     df = pd.read_csv(bids_df)
     bids_csv_text = df.to_string(index=False)  # Converts the DataFrame to a text
 
-    prompt_template = """You have the following bids:\n{bids_df}\n\n
-                      Evaluate each bid based on price, quality, delivery timelines, and technology.
-                      Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."""
+    prompt_template = """Chain-of-thought prompt:
 
-    prompt = PromptTemplate(input_variables=["bids_df"], template=prompt_template)
+                        1. Read the bids file {bids_csv_text} and the Technical Requirements Document {trd}.
+                        2. For each bid, extract the Unit Price and rank bids so that the bid with the lowest Unit Price gets the highest numerical rank (e.g., if there are 4 bids, the lowest price gets rank 4 and the highest gets rank 1). Record this as price_BidX for each bid.
+                        3. For each bid, compare its technical proposal attributes (processor, RAM, storage, display, graphics, battery life, ports, connectivity, operating system, and warranty) with the specifications in the TRD. Assign a technical capability score (tech_cap_BidX) from 0 to 1 based on the similarity.
+                        4. For each bid, extract the Lead Time from the delivery schedule and rank bids so that the bid with the lowest Lead Time gets the highest numerical rank and the bid with the highest Lead Time gets rank 1. Record this as delivery_BidX.
+                        5. Independently rank the overall quality of each bid (excluding technical specifications) so that the bid with the best quality gets the highest numerical rank and the worst quality gets rank 1. Record this as quality_BidX.
+                        6. Compute a weighted average score for each bid using the formula:  
+                          Weighted_Average_BidX = (price_BidX * 0.4) + (tech_cap_BidX * 0.3) + (quality_BidX * 0.2) + (delivery_BidX * 0.1).
+                        7. Rank all bids by their weighted average scores in descending order and select the top 2 bids.
+                        8. Output only a CSV file with a single column "VendorName" listing the vendor names of the top 2 bids.
+                        
+                        Return strictly the CSV output with no additional text."""
+
+    prompt = PromptTemplate(input_variables=["bids_csv_text", "trd"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    output = chain.run(bids_data=bids_data_str)
-    try:
-        evaluated = pd.read_csv(io.StringIO(output))
-    except Exception:
-        st.error("Could not parse LLM output for bid evaluation. Using fallback.")
-        evaluated = bids_df.head(2)
-    return evaluated
+    output = chain.run(bids_csv_text = bids_csv_text, trd = trd)
+    output = output.strip()
+    shortlisted = pd.read_csv(io.StringIO(output))
+    return shortlisted
 
 def simulate_negotiation_and_contract(top_bid):
     """
@@ -306,11 +313,11 @@ with st.form("input_form"):
 st.header("Step 2: Convert Business to Technical Requirements")
 if st.session_state['business_requirements']:
     if st.button("Convert to Technical Requirements"):
-        tech_req = brd_to_trd(st.session_state['business_requirements'])
-        st.session_state['technical_requirements'] = tech_req
+        trd = brd_to_trd(st.session_state['business_requirements'])
+        st.session_state['technical_requirements'] = trd
         st.success("Generated Technical Requirements")
         with st.expander("Show Technical Requirements"):
-            st.write(tech_req)
+            st.write(trd)
         # st.write("Generated Technical Requirements:")
         # st.text_area("Technical Requirements", value=tech_req, height=150)
 else:
@@ -378,26 +385,17 @@ else:
 # Step 6: Bid Evaluation
 st.header("Step 6: Evaluate Bids")
 # Replace the below if statement with "if tender document has been generated or not in the Step 4"
-if st.session_state['shortlisted_vendors'] is not None:
+if st.session_state['email']:
     bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
     if st.button("Evaluate Bids"):
-        evaluated = evaluate_bids(st.session_state['bids_df'])
+        evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
         st.session_state['evaluated_bids'] = evaluated
         st.success("Evaluated Bids")
         with st.expander("Show Top Evaluated Bids"):
             st.dataframe(evaluated)
     
-# if st.session_state['bids_df'] is not None:
-#     if st.button("Evaluate Bids"):
-#         evaluated = evaluate_bids(st.session_state['bids_df'])
-#         st.session_state['evaluated_bids'] = evaluated
-#         st.success("Evaluated Bids")
-#         with st.expander("Show Top Evaluated Bids"):
-#             st.dataframe(evaluated)
-        # st.write("Top Evaluated Bids:")
-        # st.dataframe(evaluated)
 else:
-    st.info("Please upload Bids CSV in Step 1.")
+    st.info("Ensure Email is generated")
 
 # Step 7: Negotiation & Contract
 st.header("Step 7: Negotiation Simulation and Contract Drafting")
