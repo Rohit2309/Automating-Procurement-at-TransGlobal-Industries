@@ -328,12 +328,14 @@ if st.session_state['shortlisted_vendors'] is not None:
         st.success("Generated Tender Document")
         with st.expander("Show Tender Document"):
             st.write(tender_doc)
-    if st.button("Generate Email for shortlisted Vendors") and st.session_state['tender_doc']:
-        email = generate_email()
-        st.session_state['email'] = email
-        st.success("Generated Email for vendors")
-        with st.expander("Show Email"):
-            st.write(email)
+   
+    if st.session_state['tender_doc']:
+        if st.button("Generate Email for shortlisted Vendors"):
+            email = generate_email(st.session_state['rfp_document'])
+            st.session_state['email'] = email
+            st.success("Generated Email for vendors")
+            with st.expander("Show Email"):
+                st.write(email)
     else:
         st.info("Ensure Tender Document is generated")
 else:
