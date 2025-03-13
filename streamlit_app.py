@@ -141,13 +141,22 @@ def generate_tender_doc(tech_req):
     chain = LLMChain(llm=llm, prompt=prompt)
     return chain.run(trd = tech_req)
 
-def generate_email():
-#     prompt_template = """ prompt """
-#     prompt = PromptTemplate(input_variables=[], template=prompt_template)
-#     chain = LLMChain(llm=llm, prompt=prompt)
-#     output = chain.run()
-    return ""
-
+def generate_email(rfp):
+    prompt_template = """ Generate a professional email addressed to the shortlisted vendors inviting them to submit their bids for the attached Tender Document and Request for Proposal (RFP). The email should be formal, clear, and concise, ensuring that vendors understand the expectations and submission requirements.
+                        Check for the name of Issuing organization from the attached RFP document (Variable: {rfp})
+                        The email should include only the following elements:
+                        1.	Subject Line: A professional subject line indicating an invitation to submit a bid.
+                        2.	Salutation: Address the vendors respectfully.
+                        3.	Introduction: Briefly introduce the issuing organization and the purpose of the email.
+                        4.	Invitation to Bid: Clearly state that the vendor has been shortlisted and is invited to submit a proposal based on the attached documents.
+                        5.	Attachments: Mention the attached Tender Document and RFP for their reference.
+                        6.	Closing Statement: Encourage timely submissions and express anticipation for their response.
+                        7.	Signature: Include the sender’s name, designation, and contact details.
+                        Ensure the email is concise, professional, and engaging, while maintaining a clear call to action for the vendors to submit their bids on time."""
+  
+    prompt = PromptTemplate(input_variables=["rfp"], template=prompt_template)
+    chain = LLMChain(llm=llm, prompt=prompt)
+    return chain.run(rfp = rfp)
 
 def evaluate_bids(bids_df):
     """
@@ -203,6 +212,8 @@ if 'vendor_df' not in st.session_state:
     st.session_state['vendor_df'] = None
 if 'tender_doc' not in st.session_state:
     st.session_state['tender_doc'] = ''
+if 'email' not in st.session_state:
+    st.session_state['email'] = ''
 if 'bids_df' not in st.session_state:
     st.session_state['bids_df'] = None
 if 'shortlisted_vendors' not in st.session_state:
@@ -317,8 +328,14 @@ if st.session_state['shortlisted_vendors'] is not None:
         st.success("Generated Tender Document")
         with st.expander("Show Tender Document"):
             st.write(tender_doc)
-        if st.button("Generate Email for shortlisted Vendors"):
-            email = generate_email()
+    if st.button("Generate Email for shortlisted Vendors") and st.session_state['tender_doc']:
+        email = generate_email()
+        st.session_state.['email'] = email
+        st.success("Generated Email for vendors")
+        with st.expander("Show Email"):
+            st.write(email)
+    else:
+        st.info("Ensure Tender Document is generated")
 else:
     st.info("Ensure shortlisted vendors list is generated")
 
@@ -380,6 +397,10 @@ if st.session_state['rfp_document']:
 if st.session_state['shortlisted_vendors'] is not None:
     with st.expander("Show shortlisted vendors"):
         st.dataframe(st.session_state['shortlisted_vendors'])
+
+if st.session_state['tender_doc']:
+    with st.expander("Show Tender Document"):
+        st.write(st.session_state['tender_doc'])
     
 if st.session_state['evaluated_bids'] is not None:
     with st.expander("Show Top Evaluated Bids"):
