@@ -222,9 +222,22 @@ def simulate_negotiation_and_contract(top_bid):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     bid_details = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
-    prompt_template = """You have the following top bid details:\n{bid_details}\n\n
-                      First, outline a negotiation strategy. Then provide a draft contract. 
-                      Separate the two with '---'."""
+    prompt_template = """You are a Procurement Negotiator with top 2 bid details:\n{bid_details}\n\n
+
+                        First, outline a robust negotiation strategy. Then, draft a contract reflecting your strategy. Separate the negotiation strategy and the draft contract with '---'.
+                        
+                        Analyze the bids' data to determine the company's Best Alternative to a Negotiated Agreement (BATNA). Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier. 
+                        Your recommendations should ensure that the procuring company is well-prepared to secure favorable terms by leveraging competitive market trends, supplier pricing, and potential bulk discounts.
+
+                        Using first principles thinking, break down the negotiation challenge into its fundamental components. Identify the core drivers—such as supplier cost structures, market trends, and value determinants—without relying on conventional assumptions. 
+                        Reconstruct a negotiation strategy from these basic truths that challenges standard practices and leverages competitive insights.
+
+                        Apart from other vital things, include the key factors below also:
+                        BATNA: Evaluate alternatives, given the two bids.
+                        Market Trends & Supplier Pricing: Analyze current trends and pricing.
+                        Benchmarking: Compare prices across vendors.
+                        Bulk Discounts: Assess potential savings on volume purchases.
+                        Leverage Competition: Use the competitive environment to negotiate better terms."""
 
     prompt = PromptTemplate(input_variables=["bid_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
