@@ -33,28 +33,59 @@ llm = load_llm()
 # -------------------------------
 # 2. LLM-Driven Functions
 # -------------------------------
-def convert_business_to_technical(business_text):
+def brd_to_trd(brd):
     """Use the LLM to convert business requirements into technical requirements."""
-    prompt_template = """Convert the following Business Requirements Document (BRD) into a detailed and structured Technical Requirements Document.
-                        The output should be based solely on the information provided in the BRD—do not introduce any external details or hallucinations.
-                        Include both functional and non-functional requirements for purchasing new servers, software, or any other technical assets.
-                        Ensure the document is clear and unambiguous so that suppliers can easily understand the specifications.
-                        BRD: {business_text}"""
+    prompt_template = """You are a Senior Technical Procurement Specialist at a manufacturing firm. Your task is to convert the following Business Requirements Document (BRD) into a comprehensive, strictly technical requirements document. Use only the details provided in the BRD and do not add any external information. The output must include both functional and non-functional requirements for purchasing new servers, software, or other technical assets, and it should be written so that suppliers can unambiguously understand every specification.
+                        Your output must clearly address each of the following key factors and include specific examples or ranges where applicable:
+                        Requirement Clarity & Specification Accuracy
+                        Example: If the BRD specifies intensive software handling, include a statement like "System must include 16 GB DDR4 RAM or more" to support heavy multitasking.
+                        Example: For high computational performance, specify a processor such as "Intel Core i7 (11th Gen) or equivalent" or higher.
+                        Standardized Descriptions
+                        Example: Instead of vague terms like "fast processor," clearly state "Processor: Intel Core i7 (11th Gen) or better."
+                        Example: For storage, specify "512GB SSD or higher" if the BRD indicates high storage needs.
+                        Hidden Costs Consideration
+                        Example: Include notes like "Include considerations for logistics, customs, and storage costs" when the BRD mentions any potential hidden costs.
+                        Example: If delivery or installation is mentioned, ensure to note any additional expenses that might be incurred.
+                        Regulatory Compliance
+                        Example: If the BRD refers to adhering to industry standards, include "Ensure compliance with import/export laws and applicable industry standards."
+                        Example: Specify required certifications or licenses if mentioned (e.g., "Operating System must be a licensed version of Windows 11 Pro").
+                        Risk Mitigation
+                        Example: If the BRD highlights potential risks, output "Include contract clauses for warranties (e.g., 3 years onsite warranty), penalties for delays, and risk mitigation measures."
+                        Example: Mention hidden risks like "Consideration for potential downtime and its impact on operations."
+                        Additionally, use the following example vendor bid to guide the level of detail expected. This example is for reference only and should not be copied verbatim unless the BRD contains matching details:
+                        Processor: Intel Core i7 (11th Gen) or equivalent
+                        RAM: 16 GB DDR4 or more
+                        Storage: 512GB SSD or higher
+                        Display: 15.6-inch FHD (1920×1080) IPS
+                        Graphics: Integrated or discrete as specified
+                        Battery Life: 10 hours or more
+                        Ports: e.g., 2× USB 3.0, 1× USB Type-C, HDMI, 3.5mm audio jack, Ethernet
+                        Connectivity: Wi-Fi 6, Bluetooth 5.0
+                        Operating System: Windows 11 Pro (licensed)
+                        Keyboard: Backlit keyboard
+                        Weight: Approximately 2.2 kg
+                        Warranty: 3 years onsite warranty
+                        Software: Pre-installed Windows 11 Pro with license, Office 365 Business, Antivirus with a 3-year subscription
+                        Financial Proposal: e.g., Unit Price: $1,200 per unit; total cost for 100 units: $120,000; additional software/services: $5,000; Payment Terms: 50% advance, 50% on delivery
+                        Instruction:
+                        Convert the provided BRD into a detailed Technical Requirements Document that strictly contains technical details extracted from the BRD. 
+                        For each key technical aspect (e.g., processor, RAM, storage), if the BRD suggests intensive or high-performance needs, the output must specify exact or minimum values such as "16 GB DDR4" or "512GB SSD or more" as appropriate. Similarly, include specific requirements for connectivity, operating system, software, hidden cost considerations, regulatory compliance, and risk mitigation measures.
+                        BRD: {brd}"""
     
-    prompt = PromptTemplate(input_variables=["business_text"], template=prompt_template)
+    prompt = PromptTemplate(input_variables=["brd"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    return chain.run(business_text=business_text)
+    return chain.run(brd = brd)
 
-def generate_rfp(technical_requirements):
+def trd_to_rfp(trd):
     """Use the LLM to generate an RFP document from technical requirements."""
     prompt_template = """Convert the following Technical Requirements Document into a comprehensive and professional Request for Proposal (RFP) document.
                       The RFP should clearly articulate all technical details and performance criteria required from potential suppliers, based solely on the provided input.
-                      Technical Requirements: {technical_requirements}
+                      Technical Requirements: {trd}
                       NOTE: do not introduce any external details or hallucinations."""
     
-    prompt = PromptTemplate(input_variables=["technical_requirements"], template=prompt_template)
+    prompt = PromptTemplate(input_variables=["trd"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    return chain.run(technical_requirements=technical_requirements)
+    return chain.run(trd = trd)
 
 def match_vendors(vendor_df):
     """
@@ -110,7 +141,7 @@ def match_vendors(vendor_df):
     #     shortlisted = vendor_df.head(3)
     return shortlisted
 
-def generate_tender_doc(tech_req):
+def generate_tender_doc(trd):
     prompt_template = """ Using the provided Technical Requirements Document (TRD) (variable: {trd}), generate a professional tender document for procurement purposes. The tender document should be structured, clear, and concise, ensuring that vendors fully understand the technical and business requirements.
                         The tender document should include the following sections:
                         
@@ -139,7 +170,7 @@ def generate_tender_doc(tech_req):
     
     prompt = PromptTemplate(input_variables=["trd"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    return chain.run(trd = tech_req)
+    return chain.run(trd = trd)
 
 def generate_email(rfp):
     prompt_template = """ Generate a professional email addressed to the shortlisted vendors inviting them to submit their bids for the attached Tender Document and Request for Proposal (RFP). The email should be formal, clear, and concise, ensuring that vendors understand the expectations and submission requirements.
@@ -163,7 +194,9 @@ def evaluate_bids(bids_df):
     Use the LLM to evaluate bids and pick the top 2 based on price, quality, timelines, etc.
     Again, we only pass a sample of the bids to keep the prompt short.
     """
-    # bids_data_str = bids_df.head(10).to_csv(index=False)
+    df = pd.read_csv(bids_df)
+    bids_csv_text = df.to_string(index=False)  # Converts the DataFrame to a text
+
     prompt_template = """You have the following bids:\n{bids_df}\n\n
                       Evaluate each bid based on price, quality, delivery timelines, and technology.
                       Select the top 2 bids and return them in CSV format with columns: BidID, EvaluationScore."""
@@ -273,7 +306,7 @@ with st.form("input_form"):
 st.header("Step 2: Convert Business to Technical Requirements")
 if st.session_state['business_requirements']:
     if st.button("Convert to Technical Requirements"):
-        tech_req = convert_business_to_technical(st.session_state['business_requirements'])
+        tech_req = brd_to_trd(st.session_state['business_requirements'])
         st.session_state['technical_requirements'] = tech_req
         st.success("Generated Technical Requirements")
         with st.expander("Show Technical Requirements"):
@@ -287,7 +320,7 @@ else:
 st.header("Step 3: Generate RFP")
 if st.session_state['technical_requirements']:
     if st.button("Generate RFP"):
-        rfp = generate_rfp(st.session_state['technical_requirements'])
+        rfp = trd_to_rfp(st.session_state['technical_requirements'])
         st.session_state['rfp_document'] = rfp
         st.success("Generated RFP")
         with st.expander("Show RFP"):
@@ -403,6 +436,10 @@ if st.session_state['shortlisted_vendors'] is not None:
 if st.session_state['tender_doc']:
     with st.expander("Show Tender Document"):
         st.write(st.session_state['tender_doc'])
+
+if st.session_state['email']:
+    with st.expander("Show Email for shortlisted vendors"):
+        st.write(st.session_state['email'])
     
 if st.session_state['evaluated_bids'] is not None:
     with st.expander("Show Top Evaluated Bids"):
