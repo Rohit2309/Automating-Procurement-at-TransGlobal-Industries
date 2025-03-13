@@ -311,7 +311,7 @@ else:
 st.header("Step 5: Generating Emails for vendors")
 if st.session_state['shortlisted_vendors'] is not None:
     if st.button("Generate Tender Document"):
-        tender_doc = generate_tender_doc(tech_req)
+        tender_doc = generate_tender_doc(st.session_state['technical_requirements'])
         # email = generate_email() 
         st.session_state['tender_doc'] = tender_doc
         st.success("Generated Tender Document")
