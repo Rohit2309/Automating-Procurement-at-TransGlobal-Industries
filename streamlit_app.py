@@ -280,8 +280,8 @@ if 'contract_draft' not in st.session_state:
 # -------------------------------
 # 4. Streamlit App Layout
 # -------------------------------
-st.set_page_config(page_title = "Transglobal Procurement Agent")
-st.title("Procurement Agent")
+st.set_page_config(page_title = "Procurement Agent", page_icon = "📦",initial_sidebar_state="expanded")
+st.title("Transglobal Procurement Agent")
 
 # Step 1: Inputs
 st.header("Step 1: Upload Inputs & Business Requirements")
@@ -477,3 +477,39 @@ if st.session_state['technical_requirements']:
     st.download_button("Download Technical Requirements", st.session_state['technical_requirements'], file_name="Technical_Requirements.txt")
 if st.session_state['contract_draft']:
     st.download_button("Download Contract Draft", st.session_state['contract_draft'], file_name="Contract_Draft.txt")
+
+# Sidebar Configuration
+st.sidebar.title("ℹ️ About This App")
+st.sidebar.markdown(
+    """
+    This Agentic AI tool automates TransGlobal Industries' procurement process using advanced **GenAI technologies** (LLMs, LangChain, and Streamlit). 
+    It transforms business requirements into technical specifications, generates RFPs, streamlines vendor selection, evaluates bids, and simulates negotiation strategies—reducing manual work, improving accuracy, and accelerating decision-making. 🚀
+    """
+)
+
+# 📌 Display library versions
+st.sidebar.markdown("### 📦 Library Versions")
+st.sidebar.markdown(f"🔹 **Streamlit**: {st.__version__}")
+st.sidebar.markdown(f"🔹 **LangChain**: {langchain.__version__}")
+st.sidebar.markdown(f"🔹 **Pandas**: {pd.__version__}")
+
+# Sidebar section
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Created by Group 2**")
+
+# Create a DataFrame for the table
+groupdata = {
+    "Name": [
+        "Aniket Singh", "Ankit Mamgai", "Anubhav Verma",
+        "Rohit Behara", "Akshay Patel"
+    ],
+    "FT Number": [
+        "FT251018", "FT251019", "FT251021",
+        "FT251066", "FT252010"
+    ]
+}
+
+groupdf = pd.DataFrame(groupdata)
+# Display the table in the sidebar
+st.sidebar.markdown("### 👥 Team Members")
+st.sidebar.dataframe(groupdf, hide_index=True)
