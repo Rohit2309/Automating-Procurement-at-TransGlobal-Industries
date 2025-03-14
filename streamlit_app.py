@@ -228,32 +228,44 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     
     prompt_template = """You are a Procurement Negotiator.
                         First, you will check the names of the shortlisted bids in the file {top_bids}.
-                        To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}
-
-                        Now outline a robust negotiation strategy. Then, draft a contract reflecting your strategy. Separate the negotiation strategy and the draft contract with '---'.
-                        
-                        Analyze the bids data to determine the company's Best Alternative to a Negotiated Agreement (BATNA). Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier. 
+                        To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}.
+                        Now outline a robust negotiation strategy. Then assess the potential risks associated with only the first bid from the shortlisted bids and generate a risk assessment report.
+                        Then, draft a contract document only for the first bid from the shortlisted bids (ensure to include findings from the risk assessment report).
+                        Separate the negotiation strategy, risk assessment report and the draft contract each with '---'.
+                        Analyze the bids data to determine the company's Best Alternative to a Negotiated Agreement (BATNA).
+                        Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier.
                         Your recommendations should ensure that the procuring company is well-prepared to secure favorable terms by leveraging competitive market trends, supplier pricing, and potential bulk discounts.
-
-                        Using first principles thinking, break down the negotiation challenge into its fundamental components. Identify the core drivers—such as supplier cost structures, market trends, and value determinants—without relying on conventional assumptions. 
-                        Reconstruct a negotiation strategy from these basic truths that challenges standard practices and leverages competitive insights.
-
-                        Apart from other vital things, include the key factors below also:
+                        Using first principles thinking, break down the negotiation challenge into its fundamental components. Identify the core drivers—such as supplier cost structures, market trends, and value determinants—without relying on conventional assumptions.
+                        Reconstruct a negotiation strategy from these basic truths that challenges standard practices and leverages competitive insights. Apart from other vital things, include the key factors below also:
                         BATNA: Evaluate alternatives, given the two bids.
                         Market Trends & Supplier Pricing: Analyze current trends and pricing.
                         Benchmarking: Compare prices across vendors.
                         Bulk Discounts: Assess potential savings on volume purchases.
-                        Leverage Competition: Use the competitive environment to negotiate better terms."""
+                        Leverage Competition: Use the competitive environment to negotiate better terms.
+                        Contract document should include clauses for risk mitigation, performance guarantees, and dispute resolution, ensuring that both parties have clear and binding commitments."""
 
     prompt = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    # Split the output into parts using '---' as the delimiter.
+# If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
+# Otherwise, assign fallback messages for any missing parts.
     if "---" in output:
-        negotiation_strategy, contract_draft = output.split("---", 1)
+        parts = output.split("---")
+        if len(parts) >= 3:
+            negotiation_strategy = parts[0].strip()
+            risk_assessment = parts[1].strip()
+            contract_draft = parts[2].strip()
+        else:
+            negotiation_strategy = parts[0].strip() if len(parts) > 0 else output.strip()
+            risk_assessment = parts[1].strip() if len(parts) > 1 else "No risk assessment found."
+            contract_draft = "No contract draft found."
     else:
-        negotiation_strategy = output
+        negotiation_strategy = output.strip()
+        risk_assessment = "No risk assessment found."
         contract_draft = "No contract draft found."
-    return negotiation_strategy.strip(), contract_draft.strip()
+
+    return negotiation_strategy.strip(), risk_assessment.strip(), contract_draft.strip()
 
 # -------------------------------
 # 3. Initialize Session State
@@ -427,20 +439,21 @@ st.header("Step 7: Negotiation Simulation and Contract Drafting")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
     top_bid = st.session_state['evaluated_bids'].iloc[0].to_dict()
     if st.button("Simulate Negotiation & Draft Contract"):
-        negotiation_strategy, contract_draft = simulate_negotiation_and_contract(top_bid, st.session_state['bids_df'])
+        negotiation_strategy, risk_assessment, contract_draft = simulate_negotiation_and_contract(top_bid, st.session_state['bids_df'])
         st.session_state['negotiation_strategy'] = negotiation_strategy
+        st.session_state['risk_assessment'] = risk_assessment
         st.session_state['contract_draft'] = contract_draft
-        st.success("Generated Negotiation Strategy and Contract Draft")
+        st.success("Generated Negotiation Strategy, Risk Assessment Report and Contract Draft")
         with st.expander("Show Negotiation Strategy"):
             st.write(negotiation_strategy)
-        # st.write("Negotiation Strategy:")
-        # st.text_area("Negotiation Strategy", value=negotiation_strategy, height=100)
+        with st.expander("Show Risk Assessment Report"):
+            st.write(risk_assessment)
         with st.expander("Show Contract Draft"):
             st.write(contract_draft)
         # st.write("Contract Draft:")
         # st.text_area("Contract Draft", value=contract_draft, height=150)
 else:
-    st.info("Please evaluate bids in Step 5.")
+    st.info("Please evaluate bids in Step 6.")
 
 # Step 8: Final Review & Downloads
 st.header("Step 8: Final Review & Download")
@@ -472,15 +485,21 @@ if st.session_state['negotiation_strategy']:
     with st.expander("Show Negotiation Strategy"):
         st.write(st.session_state['negotiation_strategy'])
 
+if st.session_state['risk_assessment']:
+    with st.expander("Show Risk Assessment Report"):
+        st.write(st.session_state['risk_assessment'])
+
 if st.session_state['contract_draft']:
     with st.expander("Show Contract Draft"):
         st.write(st.session_state['contract_draft'])
 
 st.header("Download Final Documents")
 if st.session_state['rfp_document']:
-    st.download_button("Download RFP Document", st.session_state['rfp_document'], file_name="RFP_Document.txt")
+    st.download_button("Download RFP Document", st.session_state['rfp_document'], file_name="Request_For_Proposal.txt")
 if st.session_state['technical_requirements']:
     st.download_button("Download Technical Requirements", st.session_state['technical_requirements'], file_name="Technical_Requirements.txt")
+if st.session_state['risk_assessment']:
+    st.download_button("Download Risk Assessment Report", st.session_state['risk_assessment'], file_name="Risk_assessment_report.txt")
 if st.session_state['contract_draft']:
     st.download_button("Download Contract Draft", st.session_state['contract_draft'], file_name="Contract_Draft.txt")
 
