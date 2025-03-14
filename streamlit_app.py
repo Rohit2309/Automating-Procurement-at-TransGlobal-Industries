@@ -1,6 +1,7 @@
 # Objective: To build an Agentic AI that automates TransGlobal Industries' procurement process by leveraging LLMs, LangChain, and Streamlit. 
 
 import streamlit as st
+import os
 import langchain
 import pandas as pd
 import io
@@ -27,7 +28,7 @@ def load_llm():
         model="gemini-1.5-pro-latest",  # or another available model (e.g. "chat-bison@001")
         temperature=0,
         max_tokens=8000,
-        api_key=st.secrets["GOOGLE_API_KEY"]
+        api_key=os.environ.get("GOOGLE_API_KEY")
     )
 
 llm = load_llm()
