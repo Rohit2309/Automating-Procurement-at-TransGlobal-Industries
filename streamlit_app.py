@@ -1,4 +1,4 @@
-# Objective: 
+# Objective: To build an Agentic AI that automates TransGlobal Industries' procurement process by leveraging LLMs, LangChain, and Streamlit. 
 
 import streamlit as st
 import langchain
