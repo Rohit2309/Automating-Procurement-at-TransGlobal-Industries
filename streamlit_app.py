@@ -220,13 +220,14 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     # Create a multi-line string of the top bid's details by formatting each key-value pair as "key: value" and joining them with newline characters.
-    top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
+    # top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
+    top_bids_text = top_bid.to_string(index=False)
     # Converts the DataFrame to a text
     bids_csv_text = bids_df.to_string(index=False)  
     
     prompt_template_negotiation = """You are a Procurement Negotiator.
                         First, you will check the names of the shortlisted bids in the file {top_bids}.
-                        Store the name of the first bid as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
+                        Store the name of the first bid from the shortlisted bids as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
                         To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}. now, follow the intructions below:
                         Outline a robust negotiation strategy. Apart from other vital things, construct the negotiation strategy including the following factors also:
                             1. BATNA: Analyze the pricing of bids to determine the company's Best Alternative to a Negotiated Agreement (BATNA). Evaluate alternatives, given the shortlisted bids.
@@ -238,7 +239,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                         """
     prompt_negotiation = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template_negotiation)
     chain_negotiate = LLMChain(llm=llm, prompt=prompt_negotiation)
-    output_negotiate = chain_negotiate.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    output_negotiate = chain_negotiate.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
     
     prompt_template_risk = """You are a risk manager, expert in identifying potential risks associated with supplier relationships during procurement activities.
@@ -252,7 +253,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                             """
     prompt_risk = PromptTemplate(input_variables=["top_bids", "bids_details"], template = prompt_template_risk)
     chain_risk = LLMChain(llm = llm, prompt = prompt_risk)
-    output_risk = chain_risk.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    output_risk = chain_risk.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
     
     prompt_template_contract = """You are an experienced Procurement Manager specializing in contract creation, with deep expertise in the legal aspects of procurement agreements. 
@@ -275,7 +276,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                                 """
     prompt_contract = PromptTemplate(input_variables=["top_bids", "bids_details", "risk_report"], template = prompt_template_contract)
     chain_contract = LLMChain(llm = llm, prompt = prompt_contract)
-    output_contract = chain_contract.run(top_bids = top_bids_str, bids_details = bids_csv_text, risk_report = output_risk) 
+    output_contract = chain_contract.run(top_bids = top_bids_text, bids_details = bids_csv_text, risk_report = output_risk) 
     
     # Split the output into parts using '---' as the delimiter.
     # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
