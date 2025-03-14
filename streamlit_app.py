@@ -253,12 +253,12 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     if "---" in output:
         parts = output.split("---")
         if len(parts) >= 3:
-            negotiation_strategy = parts[0].strip()
-            risk_assessment = parts[1].strip()
-            contract_draft = parts[2].strip()
+            negotiation_strategy = parts[1].strip()
+            risk_assessment = parts[2].strip()
+            contract_draft = parts[3].strip()
         else:
-            negotiation_strategy = parts[0].strip() if len(parts) > 0 else output.strip()
-            risk_assessment = parts[1].strip() if len(parts) > 1 else "No risk assessment found."
+            negotiation_strategy = parts[1].strip() if len(parts) > 0 else output.strip()
+            risk_assessment = parts[2].strip() if len(parts) > 1 else "No risk assessment found."
             contract_draft = "No contract draft found."
     else:
         negotiation_strategy = output.strip()
