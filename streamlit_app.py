@@ -145,7 +145,7 @@ def generate_tender_doc(trd):
     prompt_template = """ Using the provided Technical Requirements Document (TRD) (variable: {trd}), generate a professional tender document for procurement purposes. The tender document should be structured, clear, and concise, ensuring that vendors fully understand the technical and business requirements.
                         The tender document should include the following sections:
                         
-                        1.	Title & Issuing Organization: Clearly state the tender title and the organization issuing it (in next line).
+                        1.	Title & Issuing Organization: Clearly state the tender title and the organization issuing it.
                         2.	Invitation to Tender: A brief introduction explaining the purpose of the tender and the procurement scope.
                         3.	Scope of Work: A summary of vendor responsibilities, including product delivery, pre-installation requirements, and support expectations.
                         4.	Technical Requirements: 
@@ -217,16 +217,22 @@ def evaluate_bids(bids_df, trd):
     shortlisted = pd.read_csv(io.StringIO(output))
     return shortlisted
 
-def simulate_negotiation_and_contract(top_bid):
+def simulate_negotiation_and_contract(top_bid, bids_df):
     """
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
-    bid_details = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
-    prompt_template = """You are a Procurement Negotiator with top 2 bid details:{bid_details}
+    # Create a multi-line string of the top bid's details by formatting each key-value pair as "key: value" and joining them with newline characters.
+    top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
+    # Converts the DataFrame to a text
+    bids_csv_text = bids_df.to_string(index=False)  
+    
+    prompt_template = """You are a Procurement Negotiator.
+                        First, you will check the names of the shortlisted bids in the file {top_bids_str}.
+                        To proceed further you will only consider the details of these shortlisted bids from the file {bids_csv_text}
 
-                        First, outline a robust negotiation strategy. Then, draft a contract reflecting your strategy. Separate the negotiation strategy and the draft contract with '---'.
+                        Now outline a robust negotiation strategy. Then, draft a contract reflecting your strategy. Separate the negotiation strategy and the draft contract with '---'.
                         
-                        Analyze the bids' data to determine the company's Best Alternative to a Negotiated Agreement (BATNA). Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier. 
+                        Analyze the bids data to determine the company's Best Alternative to a Negotiated Agreement (BATNA). Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier. 
                         Your recommendations should ensure that the procuring company is well-prepared to secure favorable terms by leveraging competitive market trends, supplier pricing, and potential bulk discounts.
 
                         Using first principles thinking, break down the negotiation challenge into its fundamental components. Identify the core drivers—such as supplier cost structures, market trends, and value determinants—without relying on conventional assumptions. 
@@ -421,7 +427,7 @@ st.header("Step 7: Negotiation Simulation and Contract Drafting")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
     top_bid = st.session_state['evaluated_bids'].iloc[0].to_dict()
     if st.button("Simulate Negotiation & Draft Contract"):
-        negotiation_strategy, contract_draft = simulate_negotiation_and_contract(top_bid)
+        negotiation_strategy, contract_draft = simulate_negotiation_and_contract(top_bid, st.session_state['bids_df'])
         st.session_state['negotiation_strategy'] = negotiation_strategy
         st.session_state['contract_draft'] = contract_draft
         st.success("Generated Negotiation Strategy and Contract Draft")
