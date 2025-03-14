@@ -246,12 +246,12 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                         '---'
                         "Risk Assessment Report"
                         '---'
-                        "Draft Contract""""
+                        "Draft Contract"
+                        """
 
     prompt = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(top_bids = top_bids_str, bids_details = bids_csv_text)
-    st.write(output)
     # Split the output into parts using '---' as the delimiter.
     # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
     # Otherwise, assign fallback messages for any missing parts.
@@ -307,30 +307,31 @@ st.set_page_config(page_title = "Procurement Agent", page_icon = "📦",initial_
 st.title("Transglobal Procurement Agent")
 
 # Step 1: Inputs
-st.header("Step 1: Upload Inputs & Business Requirements")
+st.header("Step 1: Enter Business Requirements")
 with st.form("input_form"):
-    business_text = st.text_area("Enter Business Requirements", height=150)
-    submitted_inputs = st.form_submit_button("Submit Inputs")
+    business_text = st.text_area("Text area to enter business requirements", height=150)
+    submitted_inputs = st.form_submit_button("Submit BRD")
 
     if submitted_inputs:
-        # Capture business requirements
         if business_text:
             st.session_state['business_requirements'] = business_text
-            st.success("Business requirements captured.")
+            st.success("Business requirements captured.")            
         else:
             st.error("Please enter business requirements.")
         
 # Step 2: Convert to Technical Requirements
-st.header("Step 2: Convert Business to Technical Requirements")
+st.header("Step 2: Convert BRD to Technical Requirements Document")
 if st.session_state['business_requirements']:
     if st.button("Convert to Technical Requirements"):
-        trd = brd_to_trd(st.session_state['business_requirements'])
+        with st.spinner('Generating Technical Requirements Document'):
+                trd = brd_to_trd(st.session_state['business_requirements'])
+        # trd = brd_to_trd(st.session_state['business_requirements'])
         st.session_state['technical_requirements'] = trd
         st.success("Generated Technical Requirements")
         with st.expander("Show Technical Requirements"):
             st.write(trd)
 else:
-    st.info("Enter business requirements in Step 1.")
+    st.info("Ensure that Business Requirements are captured in Step 1")
 
 # Step 3: Generate RFP
 st.header("Step 3: Generate RFP")
