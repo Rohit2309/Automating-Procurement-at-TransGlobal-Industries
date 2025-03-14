@@ -204,7 +204,7 @@ def evaluate_bids(bids_df, trd):
                         6. Compute a weighted average score for each bid using the formula:  
                           Weighted_Average_BidX = (price_BidX * 0.4) + (tech_cap_BidX * 0.3) + (quality_BidX * 0.2) + (delivery_BidX * 0.1).
                         7. Rank all bids by their weighted average scores in descending order and select the top 2 bids.
-                        8. Output only a CSV file with a single column with "VendorName" as header, listing the vendor names of the top 2 bids.
+                        8. Output only a CSV file with a single column "VendorName" listing the vendor names of the top 2 bids.
                         
                         Return strictly the CSV output with no additional text."""
 
