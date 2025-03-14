@@ -334,16 +334,17 @@ else:
     st.info("Ensure that Business Requirements are captured in Step 1")
 
 # Step 3: Generate RFP
-st.header("Step 3: Generate RFP")
+st.header("Step 3: Generate RFP from TRD")
 if st.session_state['technical_requirements']:
     if st.button("Generate RFP"):
-        rfp = trd_to_rfp(st.session_state['technical_requirements'])
+        with st.spinner('Generating Request for Proposal'):
+                rfp = trd_to_rfp(st.session_state['technical_requirements'])        
         st.session_state['rfp_document'] = rfp
-        st.success("Generated RFP")
+        st.success("Generated Request for Proposal")
         with st.expander("Show RFP"):
             st.write(rfp)
 else:
-    st.info("Please generate technical requirements in Step 2.")
+    st.info("Please generate Technical Requirements in Step 2")
 
 # Step 4: Vendor Selection
 st.header("Step 4: Vendor Selection")
@@ -355,24 +356,25 @@ if st.session_state['rfp_document']:
                 vendor_df = pd.read_csv(vendor_file)
                 st.session_state['vendor_df'] = vendor_df
                 st.success("Vendor CSV uploaded successfully.")
-                shortlisted = match_vendors(st.session_state['vendor_df'])
+                with st.spinner('Please wait, vendor selection process is going on...'):
+                    shortlisted = match_vendors(st.session_state['vendor_df'])
                 st.session_state['shortlisted_vendors'] = shortlisted
                 st.success("Shortlisted Vendors")
                 with st.expander("Show shortlisted vendors"):
                     st.dataframe(shortlisted)
             except Exception as e:
-                st.error(f"Error reading vendor CSV: {e}")
-                
+                st.error(f"Error reading vendor CSV: {e}")        
         else:
             st.error("Please upload Vendor History CSV.")        
 else:
-    st.info("Ensure technical requirements are generated.")
+    st.info("Ensure RFP is generated in Step 3")
 
 # Step 5: Producing a tender document and generating email for the shortlisted vendors
-st.header("Step 5: Generating Emails for vendors")
+st.header("Step 5: Producing Tender Document and Generating Emails for vendors")
 if st.session_state['shortlisted_vendors'] is not None:
     if st.button("Generate Tender Document"):
-        tender_doc = generate_tender_doc(st.session_state['technical_requirements'])
+        with st.spinner('Generating Tender Document...'):
+            tender_doc = generate_tender_doc(st.session_state['technical_requirements'])
         st.session_state['tender_doc'] = tender_doc
         st.success("Generated Tender Document")
         with st.expander("Show Tender Document"):
@@ -380,7 +382,8 @@ if st.session_state['shortlisted_vendors'] is not None:
    
     if st.session_state['tender_doc']:
         if st.button("Generate Email for shortlisted Vendors"):
-            email = generate_email(st.session_state['rfp_document'])
+            with st.spinner('Generating Email...'):
+                email = generate_email(st.session_state['rfp_document'])
             st.session_state['email'] = email
             st.success("Generated Email for vendors")
             with st.expander("Show Email"):
@@ -388,7 +391,7 @@ if st.session_state['shortlisted_vendors'] is not None:
     else:
         st.info("Ensure Tender Document is generated")
 else:
-    st.info("Ensure shortlisted vendors list is generated")
+    st.info("Ensure shortlisted vendors list is generated in step 4")
 
 
 # Step 6: Bid Evaluation
@@ -400,8 +403,9 @@ if st.session_state['email']:
             try:
                 bids_df = pd.read_csv(bids_file)
                 st.session_state['bids_df'] = bids_df
-                st.success("Bids CSV uploaded successfully.")
-                evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
+                st.success("Bids CSV uploaded successfully")
+                with st.spinner('Evaluating Bids...'):
+                    evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
                 st.session_state['evaluated_bids'] = evaluated
                 st.success("Evaluated Bids")
                 with st.expander("Show Top Evaluated Bids"):
@@ -410,10 +414,10 @@ if st.session_state['email']:
                 st.error(f"Error reading bids CSV: {e}")
     
 else:
-    st.info("Ensure Email is generated")
+    st.info("Ensure Email for vendors is generated")
 
 # Step 7: Negotiation & Contract
-st.header("Step 7: Negotiation Simulation and Contract Drafting")
+st.header("Step 7: Generating Negotiation Strategy, Risk Assessment and Contract Document")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
     top_bid = st.session_state['evaluated_bids'].iloc[0].to_dict()
     if st.button("Simulate Negotiation & Draft Contract"):
@@ -429,7 +433,7 @@ if st.session_state['evaluated_bids'] is not None and not st.session_state['eval
         with st.expander("Show Contract Draft"):
             st.write(contract_draft)
 else:
-    st.info("Please evaluate bids in Step 6.")
+    st.info("Please evaluate bids in Step 6")
 
 # Step 8: Final Review & Downloads
 st.header("Step 8: Final Review & Download")
