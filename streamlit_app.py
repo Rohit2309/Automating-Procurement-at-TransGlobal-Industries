@@ -243,7 +243,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     
     prompt_template_risk = """You are a risk manager, expert in identifying potential risks associated with supplier relationships during procurement activities.
                             First, you will check the names of the shortlisted bids in the file {top_bids}.
-                            Store the name of the first bid as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
+                            Store the name of the first bid from the shortlisted bids as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
                             To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}. Now, follow the intructions below:
                             Carefully analyze the functional and non-functional characteristics of the "TopBid", including its technical specifications (e.g., processor, RAM, storage, performance benchmarks), operational features, and quality parameters.
                             Assess potential risks such as supplier reliability and financial stability, compliance with regulatory and industry standards, and adherence to warranty and service level agreements.
@@ -257,7 +257,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     
     prompt_template_contract = """You are an experienced Procurement Manager specializing in contract creation, with deep expertise in the legal aspects of procurement agreements. 
                                 First, you will check the names of the shortlisted bids in the file {top_bids}.
-                                Store the name of the first bid as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
+                                Store the name of the first bid from the shortlisted bids as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
                                 To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}. Now, follow the intructions below:
                                 Your task is to draft a comprehensive contract document exclusively for 'TopBid,' incorporating key findings from the risk assessment report {risk_report}.
                                 The contract should be legally sound, ensuring clear and enforceable commitments between both parties. 
