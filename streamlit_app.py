@@ -292,6 +292,8 @@ if 'evaluated_bids' not in st.session_state:
     st.session_state['evaluated_bids'] = None
 if 'negotiation_strategy' not in st.session_state:
     st.session_state['negotiation_strategy'] = ''
+if 'risk_assessment' not in st.session_state:
+    st.session_state['risk_assessment'] = ''
 if 'contract_draft' not in st.session_state:
     st.session_state['contract_draft'] = ''
 
