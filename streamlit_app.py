@@ -229,8 +229,8 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     prompt_template = """You are a Procurement Negotiator.
                         First, you will check the names of the shortlisted bids in the file {top_bids}.
                         To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}.
-                        Now outline a robust negotiation strategy. Then assess the potential risks associated with only the first bid from the shortlisted bids and generate a risk assessment report.
-                        Then, draft a contract document only for the first bid from the shortlisted bids (ensure to include findings from the risk assessment report).
+                        Now outline a robust negotiation strategy. Then assess the potential risks associated with only the first bid from the shortlisted bids {top_bids} and generate a risk assessment report.
+                        Then, draft a contract document only for the first bid from the shortlisted bids {top_bids} (ensure to include findings from the risk assessment report).
                         Separate the negotiation strategy, risk assessment report and the draft contract each with '---'.
                         Analyze the bids data to determine the company's Best Alternative to a Negotiated Agreement (BATNA).
                         Then, using LLM-driven insights, simulate negotiation scenarios to devise robust negotiation strategies for engaging with the preferred supplier.
@@ -247,6 +247,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     prompt = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    st.write(output)
     # Split the output into parts using '---' as the delimiter.
 # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
 # Otherwise, assign fallback messages for any missing parts.
