@@ -221,8 +221,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     # Create a multi-line string of the top bid's details by formatting each key-value pair as "key: value" and joining them with newline characters.
-    # top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
-    top_bids_text = top_bid.to_string(index=False)
+    top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
     # Converts the DataFrame to a text
     bids_csv_text = bids_df.to_string(index=False)  
     
