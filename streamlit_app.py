@@ -227,8 +227,8 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     bids_csv_text = bids_df.to_string(index=False)  
     
     prompt_template = """You are a Procurement Negotiator.
-                        First, you will check the names of the shortlisted bids in the file {top_bids_str}.
-                        To proceed further you will only consider the details of these shortlisted bids from the file {bids_csv_text}
+                        First, you will check the names of the shortlisted bids in the file {top_bids}.
+                        To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}
 
                         Now outline a robust negotiation strategy. Then, draft a contract reflecting your strategy. Separate the negotiation strategy and the draft contract with '---'.
                         
@@ -245,9 +245,9 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                         Bulk Discounts: Assess potential savings on volume purchases.
                         Leverage Competition: Use the competitive environment to negotiate better terms."""
 
-    prompt = PromptTemplate(input_variables=["bid_details"], template=prompt_template)
+    prompt = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template)
     chain = LLMChain(llm=llm, prompt=prompt)
-    output = chain.run(bid_details=bid_details)
+    output = chain.run(top_bids = top_bids_str, bids_details = bids_csv_text)
     if "---" in output:
         negotiation_strategy, contract_draft = output.split("---", 1)
     else:
