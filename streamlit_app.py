@@ -243,7 +243,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                         """
     prompt_negotiation = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template_negotiation)
     chain_negotiate = LLMChain(llm=llm, prompt=prompt_negotiation)
-    output_negotiate = chain_negotiate.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    output_negotiate = chain_negotiate.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
     
     prompt_template_risk = """Forget all the previous prompts and lets start fresh.
@@ -259,7 +259,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                             """
     prompt_risk = PromptTemplate(input_variables=["top_bids", "bids_details"], template = prompt_template_risk)
     chain_risk = LLMChain(llm = llm, prompt = prompt_risk)
-    output_risk = chain_risk.run(top_bids = top_bids_str, bids_details = bids_csv_text)
+    output_risk = chain_risk.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
     
     prompt_template_contract = """Forget all the previous prompts and lets start fresh.
@@ -283,7 +283,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                                 """
     prompt_contract = PromptTemplate(input_variables=["top_bids", "bids_details", "risk_report"], template = prompt_template_contract)
     chain_contract = LLMChain(llm = llm, prompt = prompt_contract)
-    output_contract = chain_contract.run(top_bids = top_bids_str, bids_details = bids_csv_text, risk_report = output_risk) 
+    output_contract = chain_contract.run(top_bids = top_bids_text, bids_details = bids_csv_text, risk_report = output_risk) 
     
     # Split the output into parts using '---' as the delimiter.
     # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
