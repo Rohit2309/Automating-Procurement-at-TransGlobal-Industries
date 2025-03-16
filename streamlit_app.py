@@ -221,7 +221,10 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
     # Create a multi-line string of the top bid's details by formatting each key-value pair as "key: value" and joining them with newline characters.
-    top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
+    # top_bids_str = "\n".join([f"{k}: {v}" for k, v in top_bid.items()])
+
+    top_bids_text = top_bid.to_string(index=False)
+    st.write(top_bids_text)
     # Converts the DataFrame to a text
     bids_csv_text = bids_df.to_string(index=False)  
     
@@ -322,120 +325,196 @@ if 'contract_draft' not in st.session_state:
 st.set_page_config(page_title = "Procurement Agent", page_icon = "📦",initial_sidebar_state="expanded")
 st.title("Transglobal Procurement Agent")
 
-# Step 1: Inputs
-st.header("Step 1: Enter Business Requirements")
-with st.form("input_form"):
-    business_text = st.text_area("Text area to enter business requirements", height=150)
-    submitted_inputs = st.form_submit_button("Submit BRD")
+# # Step 1: Inputs
+# st.header("Step 1: Enter Business Requirements")
+# with st.form("input_form"):
+#     business_text = st.text_area("Text area to enter business requirements", height=150)
+#     submitted_inputs = st.form_submit_button("Submit BRD")
 
-    if submitted_inputs:
-        if business_text:
-            st.session_state['business_requirements'] = business_text
-            st.success("Business requirements captured.")            
-        else:
-            st.error("Please enter business requirements.")
+#     if submitted_inputs:
+#         if business_text:
+#             st.session_state['business_requirements'] = business_text
+#             st.success("Business requirements captured.")            
+#         else:
+#             st.error("Please enter business requirements.")
         
-# Step 2: Convert to Technical Requirements
-st.header("Step 2: Convert BRD to Technical Requirements Document")
-if st.session_state['business_requirements']:
-    if st.button("Convert to Technical Requirements"):
-        with st.spinner('Generating Technical Requirements Document'):
-                trd = brd_to_trd(st.session_state['business_requirements'])
-        # trd = brd_to_trd(st.session_state['business_requirements'])
-        st.session_state['technical_requirements'] = trd
-        st.success("Generated Technical Requirements")
-        with st.expander("Show Technical Requirements"):
-            st.write(trd)
-else:
-    st.info("Ensure that Business Requirements are captured in Step 1")
+# # Step 2: Convert to Technical Requirements
+# st.header("Step 2: Convert BRD to Technical Requirements Document")
+# if st.session_state['business_requirements']:
+#     if st.button("Convert to Technical Requirements"):
+#         with st.spinner('Generating Technical Requirements Document'):
+#                 trd = brd_to_trd(st.session_state['business_requirements'])
+#         # trd = brd_to_trd(st.session_state['business_requirements'])
+#         st.session_state['technical_requirements'] = trd
+#         st.success("Generated Technical Requirements")
+#         with st.expander("Show Technical Requirements"):
+#             st.write(trd)
+# else:
+#     st.info("Ensure that Business Requirements are captured in Step 1")
 
-# Step 3: Generate RFP
-st.header("Step 3: Generate RFP from TRD")
-if st.session_state['technical_requirements']:
-    if st.button("Generate RFP"):
-        with st.spinner('Generating Request for Proposal'):
-                rfp = trd_to_rfp(st.session_state['technical_requirements'])        
-        st.session_state['rfp_document'] = rfp
-        st.success("Generated Request for Proposal")
-        with st.expander("Show RFP"):
-            st.write(rfp)
-else:
-    st.info("Please generate Technical Requirements in Step 2")
+# # Step 3: Generate RFP
+# st.header("Step 3: Generate RFP from TRD")
+# if st.session_state['technical_requirements']:
+#     if st.button("Generate RFP"):
+#         with st.spinner('Generating Request for Proposal'):
+#                 rfp = trd_to_rfp(st.session_state['technical_requirements'])        
+#         st.session_state['rfp_document'] = rfp
+#         st.success("Generated Request for Proposal")
+#         with st.expander("Show RFP"):
+#             st.write(rfp)
+# else:
+#     st.info("Please generate Technical Requirements in Step 2")
 
-# Step 4: Vendor Selection
-st.header("Step 4: Vendor Selection")
-if st.session_state['rfp_document']:
-    vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
-    if st.button("Select Vendors"):
-        if vendor_file is not None:
-            try:
-                vendor_df = pd.read_csv(vendor_file)
-                st.session_state['vendor_df'] = vendor_df
-                st.success("Vendor CSV uploaded successfully.")
-                with st.spinner('Please wait, vendor selection process is going on...'):
-                    shortlisted = match_vendors(st.session_state['vendor_df'])
-                st.session_state['shortlisted_vendors'] = shortlisted
-                st.success("Shortlisted Vendors")
-                with st.expander("Show shortlisted vendors"):
-                    st.dataframe(shortlisted)
-            except Exception as e:
-                st.error(f"Error reading vendor CSV: {e}")        
-        else:
-            st.error("Please upload Vendor History CSV.")        
-else:
-    st.info("Ensure RFP is generated in Step 3")
+# # Step 4: Vendor Selection
+# st.header("Step 4: Vendor Selection")
+# if st.session_state['rfp_document']:
+#     vendor_file = st.file_uploader("Upload Vendor History CSV", type=["csv"])
+#     if st.button("Select Vendors"):
+#         if vendor_file is not None:
+#             try:
+#                 vendor_df = pd.read_csv(vendor_file)
+#                 st.session_state['vendor_df'] = vendor_df
+#                 st.success("Vendor CSV uploaded successfully.")
+#                 with st.spinner('Please wait, vendor selection process is going on...'):
+#                     shortlisted = match_vendors(st.session_state['vendor_df'])
+#                 st.session_state['shortlisted_vendors'] = shortlisted
+#                 st.success("Shortlisted Vendors")
+#                 with st.expander("Show shortlisted vendors"):
+#                     st.dataframe(shortlisted)
+#             except Exception as e:
+#                 st.error(f"Error reading vendor CSV: {e}")        
+#         else:
+#             st.error("Please upload Vendor History CSV.")        
+# else:
+#     st.info("Ensure RFP is generated in Step 3")
 
-# Step 5: Producing a tender document and generating email for the shortlisted vendors
-st.header("Step 5: Producing Tender Document and Generating Emails for vendors")
-if st.session_state['shortlisted_vendors'] is not None:
-    if st.button("Generate Tender Document"):
-        with st.spinner('Generating Tender Document...'):
-            tender_doc = generate_tender_doc(st.session_state['technical_requirements'])
-        st.session_state['tender_doc'] = tender_doc
-        st.success("Generated Tender Document")
-        with st.expander("Show Tender Document"):
-            st.write(tender_doc)
+# # Step 5: Producing a tender document and generating email for the shortlisted vendors
+# st.header("Step 5: Producing Tender Document and Generating Emails for vendors")
+# if st.session_state['shortlisted_vendors'] is not None:
+#     if st.button("Generate Tender Document"):
+#         with st.spinner('Generating Tender Document...'):
+#             tender_doc = generate_tender_doc(st.session_state['technical_requirements'])
+#         st.session_state['tender_doc'] = tender_doc
+#         st.success("Generated Tender Document")
+#         with st.expander("Show Tender Document"):
+#             st.write(tender_doc)
    
-    if st.session_state['tender_doc']:
-        if st.button("Generate Email for shortlisted Vendors"):
-            with st.spinner('Generating Email...'):
-                email = generate_email(st.session_state['rfp_document'])
-            st.session_state['email'] = email
-            st.success("Generated Email for vendors")
-            with st.expander("Show Email"):
-                st.write(email)
-    else:
-        st.info("Ensure Tender Document is generated")
-else:
-    st.info("Ensure shortlisted vendors list is generated in step 4")
+#     if st.session_state['tender_doc']:
+#         if st.button("Generate Email for shortlisted Vendors"):
+#             with st.spinner('Generating Email...'):
+#                 email = generate_email(st.session_state['rfp_document'])
+#             st.session_state['email'] = email
+#             st.success("Generated Email for vendors")
+#             with st.expander("Show Email"):
+#                 st.write(email)
+#     else:
+#         st.info("Ensure Tender Document is generated")
+# else:
+#     st.info("Ensure shortlisted vendors list is generated in step 4")
+
+st.session_state['technical_requirements'] = """## Technical Requirements Document (TRD) for Laptop Procurement
+
+**Project:** Laptop Procurement
+**Date:** 12th March 2025
+**Prepared for:** Procurement Team, TransGlobal Industries
+**Prepared by:** [HCL]
+**Contact:** Rohit Behara (rohit@hotmail.com, 9999999999)
+
+**1. Introduction**
+
+This document outlines the technical requirements for the procurement of 200 laptops for TransGlobal Industries.  These specifications detail the hardware, software, security, and logistical requirements necessary to fulfill the business needs outlined in the corresponding Business Requirements Document (BRD).
+
+**2. Functional Requirements**
+
+* **2.1 Hardware Requirements:**
+    * **Processor:** Intel Core i7 (11th Generation) or higher, compatible with Windows 11 Pro.
+    * **RAM:** 16GB DDR4 minimum.
+    * **Storage:** 512GB Solid State Drive (SSD).
+    * **Display:** 15.6-inch Full HD (1920x1080 resolution) IPS display.
+    * **Graphics:** Integrated Intel Iris Xe or equivalent, capable of supporting business applications and video conferencing.
+    * **Battery:** Minimum 8 hours battery backup under typical office usage conditions.
+    * **Connectivity:**
+        * Wi-Fi 6 compliant wireless network adapter.
+        * Bluetooth 5.1 compliant.
+        * HDMI port.
+        * USB-C port.
+    * **Chassis:** Lightweight and durable aluminum chassis.
+
+* **2.2 Software Requirements:**
+    * **Operating System:** Windows 11 Professional edition, pre-installed and activated.
+    * **Pre-installed Applications:**
+        * Microsoft Office 365 suite (latest version).
+        * Enterprise Security Suite (specify version and vendor in proposal).
+        * Zoom video conferencing software (latest version).
+        * VPN Client (specify vendor and compatibility with corporate VPN infrastructure in proposal).
+
+* **2.3 Security Requirements:**
+    * **TPM:** Trusted Platform Module (TPM) 2.0 chip.
+    * **Biometric Authentication:** Fingerprint reader or Face ID hardware and software integration with Windows 11 Pro.
+    * **Compliance:** Laptops must comply with TransGlobal Industries' corporate IT security standards (details to be provided upon vendor selection).
+
+
+**3. Non-Functional Requirements**
+
+* **3.1 Performance:** Laptops must provide responsive performance for typical office productivity tasks, including multitasking and running business applications.
+* **3.2 Reliability:**  Laptops must be robust and reliable, minimizing downtime and maximizing operational efficiency.
+* **3.3 Security:**  Data security is paramount.  All security features must function as specified and adhere to corporate IT security policies.
+* **3.4 Usability:** Laptops must be user-friendly and easy to operate for employees with varying levels of technical expertise.
+* **3.5 Maintainability:** Laptops should be easily maintainable and repairable, with readily available spare parts.
+
+**4. Procurement Requirements**
+
+* **4.1 Quantity:** 200 laptops.
+* **4.2 Budget:** Competitive pricing with bulk purchase discounts expected.
+* **4.3 Payment Terms:** 60-day net payment terms preferred.
+* **4.4 Warranty & Support:** Minimum 3-year manufacturer warranty with on-site support services.
+* **4.5 Delivery Timeline:** Within 4 weeks of purchase order confirmation.
+* **4.6 Shipping Location:** [Company Address]
+* **4.7 Packaging:** Eco-friendly packaging with individual asset tagging for inventory tracking.
+
+
+**5. Vendor Evaluation Criteria**
+
+Vendors will be evaluated based on the following criteria:
+
+* **Compliance:** Adherence to all technical and functional requirements outlined in this document.
+* **Pricing:** Competitiveness of pricing and offered bulk discounts.
+* **Delivery:** Ability to meet the specified delivery timeline.
+* **Support:** Quality of post-sales support and warranty services.
+
+
+**6.  Appendix**
+
+(This section can be used to include any supporting documentation, such as corporate IT security standards, if deemed necessary."""
+
 
 
 # Step 6: Bid Evaluation
 st.header("Step 6: Evaluate Bids")
-if st.session_state['email']:
-    bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
-    if st.button("Evaluate Bids"):
-        if bids_file is not None:
-            try:
-                bids_df = pd.read_csv(bids_file)
-                st.session_state['bids_df'] = bids_df
-                st.success("Bids CSV uploaded successfully")
-                with st.spinner('Evaluating Bids...'):
-                    evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
-                st.session_state['evaluated_bids'] = evaluated
-                st.success("Evaluated Bids")
-                with st.expander("Show Top Evaluated Bids"):
-                    st.dataframe(evaluated)
-            except Exception as e:
-                st.error(f"Error reading bids CSV: {e}")
+# if st.session_state['email']:
+bids_file = st.file_uploader("Upload Bids CSV", type=["csv"])
+if st.button("Evaluate Bids"):
+    if bids_file is not None:
+        try:
+            bids_df = pd.read_csv(bids_file)
+            st.session_state['bids_df'] = bids_df
+            st.success("Bids CSV uploaded successfully")
+            with st.spinner('Evaluating Bids...'):
+                evaluated = evaluate_bids(st.session_state['bids_df'], st.session_state['technical_requirements'])
+            st.session_state['evaluated_bids'] = evaluated
+            st.success("Evaluated Bids")
+            with st.expander("Show Top Evaluated Bids"):
+                st.dataframe(evaluated)
+        except Exception as e:
+            st.error(f"Error reading bids CSV: {e}")
     
-else:
-    st.info("Ensure Email for vendors is generated")
+# else:
+#     st.info("Ensure Email for vendors is generated")
 
 # Step 7: Negotiation & Contract
 st.header("Step 7: Generating Negotiation Strategy, Risk Assessment and Contract Document")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
-    top_bid = st.session_state['evaluated_bids'].iloc[0].to_dict()
+    top_bid = st.session_state['evaluated_bids']
     if st.button("Simulate Negotiation & Draft Contract"):
         negotiation_strategy, risk_assessment, contract_draft = simulate_negotiation_and_contract(top_bid, st.session_state['bids_df'])
         st.session_state['negotiation_strategy'] = negotiation_strategy
