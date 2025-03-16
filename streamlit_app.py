@@ -245,6 +245,14 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     chain_negotiate = LLMChain(llm=llm, prompt=prompt_negotiation)
     output_negotiate = chain_negotiate.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
+    return output_negotiate
+
+def risk_assessment(top_bid, bids_df):
+    
+    top_bids_text = top_bid.to_string(index=False)
+    # st.write(top_bids_text)
+    # Converts the DataFrame to a text
+    bids_csv_text = bids_df.to_string(index=False)     
     
     prompt_template_risk = """Forget all the previous prompts and lets start fresh.
                             You are a risk manager, expert in identifying potential risks associated with supplier relationships during procurement activities.
@@ -257,10 +265,19 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                             Generate a detailed risk assessment report that highlights critical risk factors, their potential impact, and recommended mitigation strategies.
                             Limit your response to no more than 450 words.
                             """
+    
     prompt_risk = PromptTemplate(input_variables=["top_bids", "bids_details"], template = prompt_template_risk)
     chain_risk = LLMChain(llm = llm, prompt = prompt_risk)
     output_risk = chain_risk.run(top_bids = top_bids_text, bids_details = bids_csv_text)
 
+    return output_risk
+
+def risk_assessment(top_bid, bids_df):
+
+    top_bids_text = top_bid.to_string(index=False)
+    # st.write(top_bids_text)
+    # Converts the DataFrame to a text
+    bids_csv_text = bids_df.to_string(index=False)
     
     prompt_template_contract = """Forget all the previous prompts and lets start fresh.
                                 You are an experienced Procurement Manager specializing in contract creation, with deep expertise in the legal aspects of procurement agreements. 
@@ -289,7 +306,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
     # Otherwise, assign fallback messages for any missing parts.
 
-    return output_negotiate, output_risk, output_contract
+    return output_contract
 
 # -------------------------------
 # 3. Initialize Session State
@@ -515,20 +532,34 @@ if st.button("Evaluate Bids"):
 st.header("Step 7: Generating Negotiation Strategy, Risk Assessment and Contract Document")
 if st.session_state['evaluated_bids'] is not None and not st.session_state['evaluated_bids'].empty:
     top_bid = st.session_state['evaluated_bids']
-    if st.button("Simulate Negotiation & Draft Contract"):
-        negotiation_strategy, risk_assessment, contract_draft = simulate_negotiation_and_contract(top_bid, st.session_state['bids_df'])
+    if st.button("Generate Negotiation Strategy"):
+        with st.spinner('Generating Negotiation Strategy...'):
+            negotiation_strategy = negotiation_strategy(top_bid, st.session_state['bids_df'])
         st.session_state['negotiation_strategy'] = negotiation_strategy
-        st.session_state['risk_assessment'] = risk_assessment
-        st.session_state['contract_draft'] = contract_draft
-        st.success("Generated Negotiation Strategy, Risk Assessment Report and Contract Draft")
+        st.success("Generated Negotiation Strategy")
         with st.expander("Show Negotiation Strategy"):
             st.write(negotiation_strategy)
-        with st.expander("Show Risk Assessment Report"):
-            st.write(risk_assessment)
-        with st.expander("Show Contract Draft"):
-            st.write(contract_draft)
+
+    if st.session_state['negotiation_strategy']:
+        if st.button("Generate Risk Assessment"):
+            with st.spinner('Generating Risk Assessment Report...'):
+                risk_assessment = risk_assessment(top_bid, st.session_state['bids_df'])                     
+            st.session_state['risk_assessment'] = risk_assessment
+            st.success("Generated Risk Assessment Report")
+            with st.expander("Show Risk Assessment Report"):
+                st.write(risk_assessment)
+
+    if st.session_state['negotiation_strategy'] and st.session_state['risk_assessment']:
+        if st.button("Generate Contract Document"):
+            with st.spinner('Generating Contract Document...'):
+                contract_draft = contract_draft(top_bid, st.session_state['bids_df'])                     
+            st.session_state['contract_draft'] = contract_draft
+            st.success("Generated Contract Document")
+            with st.expander("Show Contract Document"):
+                st.write(contract_draft)        
 else:
     st.info("Please evaluate bids in Step 6")
+
 
 # Step 8: Final Review & Downloads
 st.header("Step 8: Final Review & Download")
