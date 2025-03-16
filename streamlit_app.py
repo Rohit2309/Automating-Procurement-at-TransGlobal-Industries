@@ -243,7 +243,8 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     output_negotiate = chain_negotiate.run(top_bids = top_bids_str, bids_details = bids_csv_text)
 
     
-    prompt_template_risk = """You are a risk manager, expert in identifying potential risks associated with supplier relationships during procurement activities.
+    prompt_template_risk = """Forget all the previous prompts and lets start fresh.
+                            You are a risk manager, expert in identifying potential risks associated with supplier relationships during procurement activities.
                             First, you will check the names of the shortlisted bids in the file {top_bids}.
                             Store the name of the first bid from the shortlisted bids as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
                             To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}. Now, follow the intructions below:
@@ -258,7 +259,8 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
     output_risk = chain_risk.run(top_bids = top_bids_str, bids_details = bids_csv_text)
 
     
-    prompt_template_contract = """You are an experienced Procurement Manager specializing in contract creation, with deep expertise in the legal aspects of procurement agreements. 
+    prompt_template_contract = """Forget all the previous prompts and lets start fresh.
+                                You are an experienced Procurement Manager specializing in contract creation, with deep expertise in the legal aspects of procurement agreements. 
                                 First, you will check the names of the shortlisted bids in the file {top_bids}.
                                 Store the name of the first bid from the shortlisted bids as "TopBid" (this is only for your reference, do not mention "TopBid" in the response)
                                 To proceed further you will only consider the details of these shortlisted bids from the file {bids_details}. Now, follow the intructions below:
