@@ -216,7 +216,7 @@ def evaluate_bids(bids_df, trd):
     shortlisted = pd.read_csv(io.StringIO(output))
     return shortlisted
 
-def simulate_negotiation_and_contract(top_bid, bids_df):
+def negotiation_strategy(top_bid, bids_df):
     """
     Use the LLM to simulate a negotiation strategy and generate a contract draft from the top bid.
     """
@@ -272,7 +272,7 @@ def risk_assessment(top_bid, bids_df):
 
     return output_risk
 
-def risk_assessment(top_bid, bids_df):
+def contract_draft(top_bid, bids_df):
 
     top_bids_text = top_bid.to_string(index=False)
     # st.write(top_bids_text)
