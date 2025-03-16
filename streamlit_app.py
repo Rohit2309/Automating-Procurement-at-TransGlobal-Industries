@@ -272,7 +272,7 @@ def risk_assessment(top_bid, bids_df):
 
     return output_risk
 
-def contract_draft(top_bid, bids_df):
+def contract_draft(top_bid, bids_df, risk_report):
 
     top_bids_text = top_bid.to_string(index=False)
     # st.write(top_bids_text)
@@ -300,7 +300,7 @@ def contract_draft(top_bid, bids_df):
                                 """
     prompt_contract = PromptTemplate(input_variables=["top_bids", "bids_details", "risk_report"], template = prompt_template_contract)
     chain_contract = LLMChain(llm = llm, prompt = prompt_contract)
-    output_contract = chain_contract.run(top_bids = top_bids_text, bids_details = bids_csv_text, risk_report = output_risk) 
+    output_contract = chain_contract.run(top_bids = top_bids_text, bids_details = bids_csv_text, risk_report = risk_report) 
     
     # Split the output into parts using '---' as the delimiter.
     # If there are at least 3 parts, assign them to negotiation_strategy, risk_assessment, and contract_draft.
@@ -552,7 +552,7 @@ if st.session_state['evaluated_bids'] is not None and not st.session_state['eval
     if st.session_state['negotiation_strategy'] and st.session_state['risk_assessment']:
         if st.button("Generate Contract Document"):
             with st.spinner('Generating Contract Document...'):
-                contract_draft = contract_draft(top_bid, st.session_state['bids_df'])                     
+                contract_draft = contract_draft(top_bid, st.session_state['bids_df'], st.session_state['risk_assessment'])                     
             st.session_state['contract_draft'] = contract_draft
             st.success("Generated Contract Document")
             with st.expander("Show Contract Document"):
