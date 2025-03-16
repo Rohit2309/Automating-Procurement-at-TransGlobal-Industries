@@ -236,6 +236,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                             4. Benchmarking: Compare prices across vendors.
                             5. Using first principles thinking, break down the negotiation challenge into its fundamental components. Identify the core drivers—such as supplier cost structures, market trends, and value determinants—without relying on conventional assumptions.
                             6. Leverage Competition: Use the competitive environment to negotiate better terms.
+                        Limit your response to no more than 400 words
                         """
     prompt_negotiation = PromptTemplate(input_variables=["top_bids", "bids_details"], template=prompt_template_negotiation)
     chain_negotiate = LLMChain(llm=llm, prompt=prompt_negotiation)
@@ -250,6 +251,7 @@ def simulate_negotiation_and_contract(top_bid, bids_df):
                             Assess potential risks such as supplier reliability and financial stability, compliance with regulatory and industry standards, and adherence to warranty and service level agreements.
                             Additionally, evaluate hidden costs (logistics, maintenance, support), potential contract vulnerabilities, delivery timelines, market conditions, and any discrepancies in vendor performance history.
                             Generate a detailed risk assessment report that highlights critical risk factors, their potential impact, and recommended mitigation strategies.
+                            Limit your response to no more than 450 words
                             """
     prompt_risk = PromptTemplate(input_variables=["top_bids", "bids_details"], template = prompt_template_risk)
     chain_risk = LLMChain(llm = llm, prompt = prompt_risk)
