@@ -5,6 +5,7 @@ import os
 import langchain
 import pandas as pd
 import io
+import PyPDF2  # For extracting text from PDF files
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
