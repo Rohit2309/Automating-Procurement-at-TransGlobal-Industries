@@ -331,22 +331,22 @@ with st.form("input_form"):
     if business_upload is not None:
         file_ext = business_upload.name.split('.')[-1].lower()
         if file_ext == "txt":
-            text = business_upload.read().decode("utf-8")
+            input_text = business_upload.read().decode("utf-8")
         elif file_ext == "pdf":
             pdf_reader = PyPDF2.PdfReader(business_upload)
-            text = ""
+            input_text = ""
             for page in pdf_reader.pages:
                 page_text = page.extract_text()
                 if page_text:
-                    text += page_text + "\n"
+                    input_text += page_text + "\n"
     else:
-        text = business_text if business_text else None
+        input_text = business_text if business_text else None
     
     submitted_inputs = st.form_submit_button("Submit BRD")
 
     if submitted_inputs:
-        if business_text:
-            st.session_state['business_requirements'] = business_text
+        if input_text:
+            st.session_state['business_requirements'] = input_text
             st.success("Business requirements captured.")            
         else:
             st.error("Please enter business requirements.")
